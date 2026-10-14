@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>キネティックキック 戦術・編成シミュレーター v19</title>
+  <meta name="robots" content="noindex, nofollow">
+  <title>キネティックキック 戦術・編成シミュレーター v20</title>
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -423,76 +424,195 @@
       height: auto;
     }
 
-    /* Member Cards */
+    /* Add Member Form Box (v20 New) */
+    .add-member-box {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .add-member-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .add-member-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .form-input, .form-select {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .add-btn {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .add-btn:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* Member Cards (v20 High-Contrast Checked State) */
     .member-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
       gap: 10px;
     }
 
     .member-card {
-      background: #0f172a;
-      border: 1px solid var(--border);
+      background: #0b1120;
+      border: 2px solid #1e293b;
       border-radius: 10px;
       padding: 10px 12px;
       display: flex;
       flex-direction: column;
       gap: 4px;
-      transition: border-color 0.2s, background-color 0.2s;
+      opacity: 0.6;
+      transition: all 0.2s ease;
+      position: relative;
     }
 
+    .member-card:hover {
+      opacity: 0.88;
+      border-color: #475569;
+    }
+
+    /* Clearly visible checked state */
     .member-card.checked {
+      opacity: 1;
       border-color: #38bdf8;
-      background: rgba(56, 189, 248, 0.05);
+      background: rgba(56, 189, 248, 0.16);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.3), inset 0 0 8px rgba(56, 189, 248, 0.1);
+      transform: translateY(-2px);
     }
     
     /* GK Background Colors */
     .member-card.gk1-bg {
-      background: rgba(16, 185, 129, 0.08);
-      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.05);
+      border-color: rgba(16, 185, 129, 0.25);
     }
     .member-card.gk1-bg.checked {
+      opacity: 1;
       border-color: #10b981;
-      background: rgba(16, 185, 129, 0.15);
+      background: rgba(16, 185, 129, 0.22);
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.35), inset 0 0 8px rgba(16, 185, 129, 0.12);
     }
     
     .member-card.gk2-bg {
-      background: rgba(245, 158, 11, 0.08);
-      border-color: rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.05);
+      border-color: rgba(245, 158, 11, 0.25);
     }
     .member-card.gk2-bg.checked {
+      opacity: 1;
       border-color: #f59e0b;
-      background: rgba(245, 158, 11, 0.15);
+      background: rgba(245, 158, 11, 0.22);
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.35), inset 0 0 8px rgba(245, 158, 11, 0.12);
     }
 
-    .member-card.other-slot {
-      border-style: dashed;
+    /* Keep card bright if assigned to red or blue team manually */
+    .member-card.team-assigned-red {
+      opacity: 1;
+      border-color: #ef4444;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+    }
+    .member-card.team-assigned-blue {
+      opacity: 1;
+      border-color: #3b82f6;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
     }
 
     .member-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 4px;
     }
 
     .member-check-label {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-weight: 700;
-      font-size: 0.92rem;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 0.94rem;
       cursor: pointer;
+      width: 100%;
     }
 
     .member-checkbox {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
       cursor: pointer;
       accent-color: #38bdf8;
+      flex-shrink: 0;
     }
     
     .member-card.gk1-bg .member-checkbox { accent-color: #10b981; }
     .member-card.gk2-bg .member-checkbox { accent-color: #f59e0b; }
+
+    .checked-pill {
+      display: none;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #38bdf8;
+      color: #0f172a;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+    .member-card.checked .checked-pill {
+      display: inline-block;
+    }
+    .member-card.gk1-bg.checked .checked-pill {
+      background: #10b981;
+      color: #0f172a;
+    }
+    .member-card.gk2-bg.checked .checked-pill {
+      background: #f59e0b;
+      color: #0f172a;
+    }
+
+    .delete-custom-btn {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid #ef4444;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+    .delete-custom-btn:hover {
+      background: #ef4444;
+      color: #fff;
+    }
 
     .member-roles {
       font-size: 0.78rem;
@@ -525,13 +645,13 @@
 
     .team-btn {
       flex: 1;
-      padding: 4px;
-      font-size: 0.72rem;
-      font-weight: 700;
+      padding: 5px;
+      font-size: 0.74rem;
+      font-weight: 800;
       border: 1px solid var(--border);
       background: var(--bg-card);
       color: var(--text-sub);
-      border-radius: 4px;
+      border-radius: 5px;
       cursor: pointer;
       transition: all 0.15s;
     }
@@ -539,13 +659,15 @@
     .team-btn.red.active {
       background: #ef4444;
       color: #fff;
-      border-color: #ef4444;
+      border-color: #fca5a5;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
     }
 
     .team-btn.blue.active {
       background: #3b82f6;
       color: #fff;
-      border-color: #3b82f6;
+      border-color: #93c5fd;
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
     }
 
     .control-bar {
@@ -921,7 +1043,7 @@
       box-shadow: 0 0 8px var(--accent-glow);
     }
 
-    /* Quick Member Selector Pill inside Modal (when adding/removing enemy members on the fly) */
+    /* Quick Member Selector Pill inside Modal */
     .quick-member-selector {
       background: #0f172a;
       border: 1px dashed var(--border);
@@ -972,7 +1094,7 @@
 
 <header>
   <h1>⚽ キネティックキック 戦術・編成シミュレーター</h1>
-  <p>ポジション適性考慮・相手メンバー別ポジ＆役職ワンタップ試合中アラート対応版 (v19)</p>
+  <p>メンバー自由追加・高視認性チェック・完全ランダム闇鍋＆相手メンバー連動アラート対応版 (v20)</p>
 </header>
 
 <div class="container">
@@ -1345,11 +1467,35 @@
     <div class="card">
       <div class="card-title">👥 メンバー使用役職リスト＆赤青戦メーカー</div>
       <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
-        メンバーにチェックを入れ、振り分けボタンを押してください（このページ上でそのまま結果を確認できます）。<br>
+        参加するメンバーにチェックを入れるとカードが明るく光ります。その状態で振り分けボタンを押してください。<br>
         <strong style="color:var(--accent);">【GK均等ランダム】</strong>：GK1を両チームに優先配置し、不足時はGK2で補います（MF/FWバランスも自動調整）。<br>
         <strong style="color:var(--text-main);">【完全ランダム】</strong>：GK適性を一切無視して完全にシャッフルします。<br>
-        <strong style="color:#f59e0b;">【🃏 役職闇鍋モード】</strong>：各自の担当役職・ポジションを全役職から完全ランダムで強制決定するお祭りモードです。
+        <strong style="color:#f59e0b;">【🃏 役職闇鍋モード】</strong>：両チームにGK1名を配置しつつ、残りのメンバーのポジション（MF/FW比率も固定せず完全ランダム）と担当役職を強制決定します！
       </p>
+
+      <!-- v20 New: Custom Member Addition Form -->
+      <div class="add-member-box">
+        <div class="add-member-title">
+          <span>👤 ゲスト・新規メンバーを自由に追加（追加したメンバーはブラウザに保存されます）</span>
+          <span style="font-size:0.72rem; color:var(--text-sub);">※役職はスペース区切りで複数入力可（例：水 雷）</span>
+        </div>
+        <div class="add-member-form">
+          <input type="text" id="new-m-name" class="form-input" placeholder="名前（必須）" style="width:150px;">
+          <select id="new-m-gk" class="form-select">
+            <option value="">GKなし（フィールド専任）</option>
+            <option value="GK1">GK1（主力GK）</option>
+            <option value="GK2">GK2（サブGK）</option>
+          </select>
+          <select id="new-m-pos" class="form-select">
+            <option value="MF,FW">MF / FW 両対応</option>
+            <option value="MF">MF のみ</option>
+            <option value="FW">FW のみ</option>
+          </select>
+          <input type="text" id="new-m-main" class="form-input" placeholder="メイン役職 (例: 拳 雷)" style="width:165px;">
+          <input type="text" id="new-m-sub" class="form-input" placeholder="サブ役職 (例: 弓 風)" style="width:165px;">
+          <button class="add-btn" onclick="addNewCustomMember()">＋ リストに追加</button>
+        </div>
+      </div>
 
       <div class="control-bar">
         <button class="preset-btn" onclick="checkAllMembers(false)">⬜ チェック全解除</button>
@@ -1357,7 +1503,7 @@
         <button class="preset-btn" style="border-color:#a855f7; color:#a855f7;" onclick="randomTeamsFromChecked('pure')">🎲 完全ランダム振り分け</button>
         <button class="preset-btn" style="border-color:#f59e0b; color:#f59e0b; font-weight:800;" onclick="randomTeamsFromChecked('chaos')">🃏 役職闇鍋モードで振り分け</button>
         <button class="preset-btn" onclick="resetTeams()">🔄 所属リセット</button>
-        <span style="font-size:0.82rem; color:var(--text-sub); margin-left:auto;">参加者: <strong id="checked-count" style="color:var(--accent);">0</strong> 名</span>
+        <span style="font-size:0.85rem; color:var(--text-sub); margin-left:auto;">チェック中: <strong id="checked-count" style="color:var(--accent); font-size:1.05rem;">0</strong> 名</span>
       </div>
 
       <!-- Team Division Result inside Tab 4 -->
@@ -1525,7 +1671,7 @@
   const SHORT_ROLES = ["弓", "大剣", "雷", "風", "拳", "剣", "水"];
   const GK_CAPABLE_SHORT = ["弓", "大剣", "雷", "風"];
 
-  const HYDRO_FW_MASTERS = ["すい", "長瀬川優紀", "あーるぐれい", "壱語兄さん"];
+  const HYDRO_FW_MASTERS = ["すい", "長瀬川優紀", "あーるぐれい", "壱語兄さん", "エース"];
   const HYDRO_MF_ONLY = ["ころ", "丘丘人殺手", "いちごみるく"];
   const FIST_MASTERS = ["ユニ", "パイモンの親", "本物D旅人"];
   const BOW_GK_MASTERS = ["鈍茶(どんちゃ)", "丘丘人殺手", "いちごみるく", "あーるぐれい", "shell™(饂飩)", "みかげくん"];
@@ -1648,8 +1794,8 @@
     }
   };
 
-  // MEMBERS array with position aptitudes & MF-only Hydro note for ころ, 丘丘人殺手, いちごみるく
-  const MEMBERS = [
+  // Base 21 Community Members (Updated エース: pos MF/FW, main 水, sub 剣)
+  const BASE_MEMBERS = [
     { name: "鈍茶(どんちゃ)", gk: "GK1", pos: ["MF"], main: "弓", sub: "雷 大剣", checked: false },
     { name: "ころ", gk: "GK1", pos: ["MF", "FW"], main: "大剣 雷 風", sub: "弓 拳 / 水(MFのみ) 剣", checked: false },
     { name: "ビス", gk: "GK1", pos: ["MF", "FW"], main: "風 大剣 剣", sub: "弓 雷 水 拳", checked: false },
@@ -1668,14 +1814,115 @@
     { name: "あかり社長", gk: "", pos: ["MF", "FW"], main: "水", sub: "弓 雷", checked: false },
     { name: "本物D旅人", gk: "", pos: ["MF", "FW"], main: "拳", sub: "弓", checked: false },
     { name: "えび", gk: "", pos: ["MF", "FW"], main: "雷 風", sub: "（なし）", checked: false },
-    { name: "エース", gk: "", pos: ["MF"], main: "水", sub: "風", checked: false },
+    { name: "エース", gk: "", pos: ["MF", "FW"], main: "水", sub: "剣", checked: false },
     { name: "しろおり", gk: "", pos: ["MF"], main: "水", sub: "（なし）", checked: false },
-    { name: "そま", gk: "", pos: ["MF"], main: "風", sub: "（なし）", checked: false },
-    { name: "その他1", gk: "", pos: ["MF", "FW"], main: "自由枠", sub: "ゲスト / 調整用", checked: false, isOther: true },
-    { name: "その他2", gk: "", pos: ["MF", "FW"], main: "自由枠", sub: "ゲスト / 調整用", checked: false, isOther: true }
+    { name: "そま", gk: "", pos: ["MF"], main: "風", sub: "（なし）", checked: false }
   ];
 
-  // --- MODAL & INTERACTIVE ENEMY MEMBER + ROLE PICKER (v19 Plan A) ---
+  let MEMBERS = [...BASE_MEMBERS];
+
+  // Load saved custom members from localStorage
+  function loadCustomMembersFromStorage() {
+    try {
+      const saved = localStorage.getItem('kinetic_custom_members_v20');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          parsed.forEach(cm => {
+            if (cm && cm.name && !MEMBERS.some(m => m.name === cm.name)) {
+              MEMBERS.push({
+                name: cm.name,
+                gk: cm.gk || "",
+                pos: Array.isArray(cm.pos) ? cm.pos : ["MF", "FW"],
+                main: cm.main || "自由枠",
+                sub: cm.sub || "（なし）",
+                checked: false,
+                isCustom: true
+              });
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load custom members:', e);
+    }
+  }
+
+  function saveCustomMembersToStorage() {
+    try {
+      const customs = MEMBERS.filter(m => m.isCustom);
+      localStorage.setItem('kinetic_custom_members_v20', JSON.stringify(customs));
+    } catch (e) {
+      console.warn('Failed to save custom members:', e);
+    }
+  }
+
+  function normalizeRoleInput(str) {
+    if (!str) return "";
+    return str
+      .replace(/水法器/g, "水")
+      .replace(/風法器/g, "風")
+      .replace(/剣士/g, "剣")
+      .replace(/片手剣/g, "剣")
+      .replace(/、/g, " ")
+      .replace(/,/g, " ")
+      .trim();
+  }
+
+  function addNewCustomMember() {
+    const nameInput = document.getElementById('new-m-name');
+    const gkSelect = document.getElementById('new-m-gk');
+    const posSelect = document.getElementById('new-m-pos');
+    const mainInput = document.getElementById('new-m-main');
+    const subInput = document.getElementById('new-m-sub');
+
+    const name = nameInput.value.trim();
+    if (!name) {
+      alert("メンバーの名前を入力してください。");
+      return;
+    }
+    if (MEMBERS.some(m => m.name === name)) {
+      alert("同じ名前のメンバーが既に登録されています。");
+      return;
+    }
+
+    const gk = gkSelect.value;
+    const pos = posSelect.value.split(',');
+    const main = normalizeRoleInput(mainInput.value) || "自由枠";
+    const sub = normalizeRoleInput(subInput.value) || "（なし）";
+
+    MEMBERS.push({
+      name,
+      gk,
+      pos,
+      main,
+      sub,
+      checked: true, // Auto-check newly added member
+      isCustom: true
+    });
+
+    saveCustomMembersToStorage();
+
+    // Clear inputs
+    nameInput.value = "";
+    mainInput.value = "";
+    subInput.value = "";
+
+    renderMembers();
+  }
+
+  function deleteCustomMember(name, event) {
+    if (event) event.stopPropagation();
+    MEMBERS = MEMBERS.filter(m => m.name !== name);
+    delete memberTeams[name];
+    delete currentChaosAssignments[name];
+    delete memberLiveState[name];
+    customEnemyNames = customEnemyNames.filter(n => n !== name);
+    saveCustomMembersToStorage();
+    renderMembers();
+  }
+
+  // --- MODAL & INTERACTIVE ENEMY MEMBER + ROLE PICKER ---
   let modalEnemySource = 'red'; // 'red' | 'blue' | 'custom' | 'manual'
   let customEnemyNames = [];    // names picked when source === 'custom'
   let memberLiveState = {};     // { [memberName]: { pos: 'GK'|'MF'|'FW', role: '弓'|'大剣'|'雷'|'風'|'拳'|'剣'|'水'|null } }
@@ -1686,12 +1933,12 @@
 
   function parseRoleTokens(str) {
     if (!str || str === "自由枠" || str === "（なし）") return [];
-    const cleaned = str.replace(/\(MFのみ\)/g, '').replace(/\//g, ' ');
+    const cleaned = normalizeRoleInput(str).replace(/\(MFのみ\)/g, '').replace(/\//g, ' ');
     return cleaned.split(/\s+/).map(s => s.trim()).filter(s => SHORT_ROLES.includes(s));
   }
 
   function getMemberRoleCategories(member) {
-    if (member.isOther) {
+    if (member.main === "自由枠") {
       return { mains: [...SHORT_ROLES], subs: [], others: [] };
     }
     const mains = parseRoleTokens(member.main);
@@ -1745,6 +1992,10 @@
     if (name === "すい") {
       if (shortRole === "水") return "FW";
     }
+    if (name === "エース") {
+      if (shortRole === "水") return "FW";
+      if (shortRole === "剣") return "MF";
+    }
     if (name === "えび") {
       if (shortRole === "雷") return "FW";
       if (shortRole === "風") return "MF";
@@ -1760,7 +2011,6 @@
       return member.pos.includes("MF") ? "MF" : "FW";
     }
     if (!GK_CAPABLE_SHORT.includes(shortRole)) {
-      // Fist, Sword, Hydro cannot be GK
       if (member.pos.length === 1) return member.pos[0];
       return (shortRole === "拳" || shortRole === "剣") ? "FW" : "MF";
     }
@@ -1781,10 +2031,8 @@
     const reds = MEMBERS.filter(m => memberTeams[m.name] === 'red');
     const blues = MEMBERS.filter(m => memberTeams[m.name] === 'blue');
 
-    // Auto-select appropriate source if current source has no members
     if (modalEnemySource === 'red' && reds.length === 0) {
       if (blues.length > 0) modalEnemySource = 'blue';
-      else if (customEnemyNames.length > 0) modalEnemySource = 'custom';
       else modalEnemySource = 'custom';
     } else if (modalEnemySource === 'blue' && blues.length === 0) {
       if (reds.length > 0) modalEnemySource = 'red';
@@ -1849,7 +2097,6 @@
       customBox.style.display = 'none';
     }
 
-    // Ensure state object exists for each active member & apply chaos assignment if present
     activeMembers.forEach(m => {
       if (!memberLiveState[m.name]) {
         if (currentChaosAssignments[m.name]) {
@@ -1877,7 +2124,7 @@
   }
 
   function toggleCustomEnemyMember(name) {
-    if ( modalEnemySource !== 'custom' ) {
+    if (modalEnemySource !== 'custom') {
       modalEnemySource = 'custom';
     }
     if (customEnemyNames.includes(name)) {
@@ -1921,12 +2168,10 @@
       memberLiveState[memberName] = { pos: "FW", role: null };
     }
 
-    // Toggle off if clicking the already active role
     if (memberLiveState[memberName].role === shortRole) {
       memberLiveState[memberName].role = null;
     } else {
       memberLiveState[memberName].role = shortRole;
-      // Auto-suggest position based on personal meta
       const suggestedPos = suggestPositionForMemberRole(member, shortRole);
       memberLiveState[memberName].pos = suggestedPos;
     }
@@ -1972,7 +2217,6 @@
       const renderRoleBtn = (r, tierClass, prefix) => {
         const isActive = st.role === r;
         let label = `${prefix}${r}`;
-        // Add helpful hint for MF-only Hydro players
         if (r === "水" && HYDRO_MF_ONLY.includes(m.name)) {
           label = `${prefix}水(MF)`;
         }
@@ -2051,7 +2295,7 @@
 
     let gkRole = null;
     let gkNames = [];
-    let fieldEntries = []; // { name, pos: 'MF'|'FW', shortRole }
+    let fieldEntries = [];
     let hasF = (key) => false;
     let hasAnyHydro = false;
 
@@ -2098,7 +2342,7 @@
       return `（担当：${matched.map(m => `${m.name}[${m.pos}]`).join('・')}）`;
     };
 
-    // 1. Personal Meta High-Priority Alerts (when specific masters pick their signature roles)
+    // 1. Personal Meta High-Priority Alerts
     if (modalEnemySource !== 'manual') {
       const activeHydroFWPeople = fieldEntries.filter(e => e.role === '水' && e.pos === 'FW' && HYDRO_FW_MASTERS.includes(e.name));
       if (activeHydroFWPeople.length > 0) {
@@ -2121,7 +2365,7 @@
       }
     }
 
-    // 2. Combo Synergies (Highest Priority when multiple roles are clicked)
+    // 2. Combo Synergies
     if (hasF('風法器') && (hasF('弓') || gkRole === '弓')) {
       items.push({
         type: 'warn',
@@ -2727,7 +2971,6 @@
     const grid = document.getElementById('member-grid');
     grid.innerHTML = MEMBERS.map((m, idx) => {
       const team = memberTeams[m.name] || null;
-      const isOther = m.isOther ? 'other-slot' : '';
       
       let gkClass = '';
       let gkBadge = '';
@@ -2738,16 +2981,25 @@
         gkClass = 'gk2-bg';
         gkBadge = `<span class="combo-badge badge-gk2">GK2</span>`;
       }
+
+      let teamAssignedClass = '';
+      if (team === 'red') teamAssignedClass = 'team-assigned-red';
+      else if (team === 'blue') teamAssignedClass = 'team-assigned-blue';
       
       let posTags = m.pos.map(p => `<span class="combo-badge badge-pos">${p}</span>`).join('');
+      let customDelBtn = m.isCustom
+        ? `<button class="delete-custom-btn" title="この追加メンバーを削除" onclick="deleteCustomMember('${m.name}', event)">削除</button>`
+        : '';
 
       return `
-        <div class="member-card ${m.checked ? 'checked' : ''} ${gkClass} ${isOther}">
+        <div class="member-card ${m.checked ? 'checked' : ''} ${gkClass} ${teamAssignedClass}">
           <div class="member-header">
             <label class="member-check-label">
               <input type="checkbox" class="member-checkbox" ${m.checked ? 'checked' : ''} onchange="toggleMemberCheck(${idx}, this.checked)">
               <span>${m.name} ${gkBadge}</span>
+              <span class="checked-pill">✓ 参加</span>
             </label>
+            ${customDelBtn}
           </div>
           <div class="member-pos-info">${posTags}</div>
           <div class="member-roles">
@@ -2891,10 +3143,9 @@
       });
 
     } else if (mode === 'chaos') {
+      // v20 Chaos Mode: Guarantee 1 GK per team, and randomize MF / FW completely for remaining players
       let redGkAssigned = false;
       let blueGkAssigned = false;
-      let redMfAssigned = false;
-      let blueMfAssigned = false;
       
       shuffled.forEach((m, idx) => {
         const team = idx < targetHalf ? 'red' : 'blue';
@@ -2910,16 +3161,8 @@
           pos = "GK";
           role = ["弓", "大剣", "雷", "風法器"][Math.floor(Math.random() * 4)];
           blueGkAssigned = true;
-        } else if (team === 'red' && !redMfAssigned) {
-          pos = "MF";
-          role = ALL_ROLES[Math.floor(Math.random() * ALL_ROLES.length)];
-          redMfAssigned = true;
-        } else if (team === 'blue' && !blueMfAssigned) {
-          pos = "MF";
-          role = ALL_ROLES[Math.floor(Math.random() * ALL_ROLES.length)];
-          blueMfAssigned = true;
         } else {
-          pos = "FW";
+          pos = Math.random() < 0.5 ? "MF" : "FW";
           role = ALL_ROLES[Math.floor(Math.random() * ALL_ROLES.length)];
         }
         currentChaosAssignments[m.name] = `${pos}: ${role}`;
@@ -3010,7 +3253,7 @@
       else if (m.name === "ころ") expected.push("大剣", "雷", "風", "水(MF)");
       else if (m.name === "丘丘人殺手") expected.push("剣", "弓", "水(MF)");
       else if (m.name === "本物D旅人" || m.name === "パイモンの親") expected.push("拳");
-      else if (m.name === "すい" || m.name === "長瀬川優紀" || m.name === "壱語兄さん") {
+      else if (HYDRO_FW_MASTERS.includes(m.name)) {
         expected.push(...m.main.split(" "));
         expected.push("水");
       } else {
@@ -3073,6 +3316,7 @@
 
   // Initialize on load
   window.addEventListener('DOMContentLoaded', () => {
+    loadCustomMembersFromStorage();
     renderPresetButtons();
     updatePartySim();
     renderRolePills();
