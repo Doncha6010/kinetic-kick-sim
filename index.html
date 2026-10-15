@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>キネティックキック 戦術・編成シミュレーター v20</title>
+  <title>キネティックキック 戦術・編成シミュレーター v21</title>
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -41,12 +41,13 @@
     header {
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
       border-bottom: 1px solid var(--border);
-      padding: 20px 16px;
+      padding: 18px 16px;
       text-align: center;
       position: sticky;
       top: 0;
       z-index: 100;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      transition: padding 0.2s ease;
     }
 
     header h1 {
@@ -56,12 +57,71 @@
       background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     header p {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--text-sub);
+    }
+
+    /* Compact mode for iframe / Discord Activity */
+    body.compact-embed header {
+      padding: 8px 12px;
+      position: relative;
+    }
+    body.compact-embed header h1 {
+      font-size: 1.05rem;
+      margin-bottom: 0;
+    }
+    body.compact-embed header p {
+      display: none;
+    }
+    body.compact-embed .container {
+      padding: 10px;
+    }
+    body.compact-embed .nav-tabs {
+      margin-bottom: 12px;
+    }
+
+    /* Toast Notification (Replaces native alert() for iframe/Discord compatibility) */
+    #toast-container {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      width: 90%;
+      max-width: 460px;
+    }
+    .toast-msg {
+      background: rgba(15, 23, 42, 0.96);
+      color: #f8fafc;
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      animation: toastIn 0.25s ease forwards;
+      pointer-events: auto;
+    }
+    .toast-msg.warn {
+      border-color: #f59e0b;
+      color: #fde68a;
+    }
+    .toast-msg.success {
+      border-color: #10b981;
+      color: #a7f3d0;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .container {
@@ -424,13 +484,13 @@
       height: auto;
     }
 
-    /* Add Member Form Box (v20 New) */
+    /* Add Member Form Box */
     .add-member-box {
       background: #0f172a;
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 12px 14px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     .add-member-title {
       font-size: 0.85rem;
@@ -478,7 +538,42 @@
       box-shadow: 0 0 10px var(--accent-glow);
     }
 
-    /* Member Cards (v20 High-Contrast Checked State) */
+    /* Share / Sync Box for Discord Activity & iframe */
+    .share-sync-box {
+      background: rgba(56, 189, 248, 0.06);
+      border: 1px dashed var(--accent);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .share-textarea-wrap {
+      width: 100%;
+      display: none;
+      margin-top: 8px;
+      gap: 6px;
+      flex-direction: column;
+    }
+    .share-textarea-wrap.active {
+      display: flex;
+    }
+    .share-textarea {
+      width: 100%;
+      min-height: 68px;
+      background: #0f172a;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 0.78rem;
+      font-family: monospace;
+    }
+
+    /* Member Cards (High-Contrast Checked State) */
     .member-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
@@ -503,7 +598,6 @@
       border-color: #475569;
     }
 
-    /* Clearly visible checked state */
     .member-card.checked {
       opacity: 1;
       border-color: #38bdf8;
@@ -535,7 +629,6 @@
       box-shadow: 0 0 14px rgba(245, 158, 11, 0.35), inset 0 0 8px rgba(245, 158, 11, 0.12);
     }
 
-    /* Keep card bright if assigned to red or blue team manually */
     .member-card.team-assigned-red {
       opacity: 1;
       border-color: #ef4444;
@@ -897,7 +990,7 @@
       border-color: var(--accent);
     }
 
-    /* Member Picker Cards in Modal (Plan A: Pos + Role 2-Row Tap UI) */
+    /* Member Picker Cards in Modal */
     .enemy-member-list {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -1092,9 +1185,14 @@
 </head>
 <body>
 
+<div id="toast-container"></div>
+
 <header>
-  <h1>⚽ キネティックキック 戦術・編成シミュレーター</h1>
-  <p>メンバー自由追加・高視認性チェック・完全ランダム闇鍋＆相手メンバー連動アラート対応版 (v20)</p>
+  <div style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap;">
+    <h1>⚽ キネティックキック 戦術・編成シミュレーター</h1>
+    <button class="preset-btn" style="padding:3px 8px; font-size:0.72rem;" onclick="toggleCompactEmbedMode()" title="Discordアクティビティやiframe小窓用の省スペース表示を切り替えます">🖥️ 小窓/スリム表示切替</button>
+  </div>
+  <p>iframe・Discordアクティビティ対応 / メンバー自由追加・チーム共有・試合中アラート対応版 (v21)</p>
 </header>
 
 <div class="container">
@@ -1473,10 +1571,10 @@
         <strong style="color:#f59e0b;">【🃏 役職闇鍋モード】</strong>：両チームにGK1名を配置しつつ、残りのメンバーのポジション（MF/FW比率も固定せず完全ランダム）と担当役職を強制決定します！
       </p>
 
-      <!-- v20 New: Custom Member Addition Form -->
+      <!-- Custom Member Addition Form -->
       <div class="add-member-box">
         <div class="add-member-title">
-          <span>👤 ゲスト・新規メンバーを自由に追加（追加したメンバーはブラウザに保存されます）</span>
+          <span>👤 ゲスト・新規メンバーを自由に追加（追加したメンバーは保存されます）</span>
           <span style="font-size:0.72rem; color:var(--text-sub);">※役職はスペース区切りで複数入力可（例：水 雷）</span>
         </div>
         <div class="add-member-form">
@@ -1507,7 +1605,7 @@
       </div>
 
       <!-- Team Division Result inside Tab 4 -->
-      <div class="grid-2" style="margin-bottom:18px;">
+      <div class="grid-2" style="margin-bottom:12px;">
         <div class="slot-box" style="border-color:#ef4444; border-top-width: 4px;">
           <div class="slot-label" style="color:#ef4444; font-size:0.95rem;">🔴 赤チーム（<span id="red-count-tab4">0</span>人）</div>
           <div id="red-team-list-tab4" style="font-size:0.84rem; min-height:60px;">メンバーを選択してください</div>
@@ -1515,6 +1613,24 @@
         <div class="slot-box" style="border-color:#3b82f6; border-top-width: 4px;">
           <div class="slot-label" style="color:#3b82f6; font-size:0.95rem;">🔵 青チーム（<span id="blue-count-tab4">0</span>人）</div>
           <div id="blue-team-list-tab4" style="font-size:0.84rem; min-height:60px;">メンバーを選択してください</div>
+        </div>
+      </div>
+
+      <!-- Discord / iframe Team Share & Sync Bar -->
+      <div class="share-sync-box">
+        <div style="font-size:0.8rem; color:var(--text-sub);">
+          <strong style="color:var(--accent);">💬 Discord・メンバー間同期：</strong>振り分け結果をテキストでコピーしたり、他の人が作ったチーム結果を読み込めます。
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="preset-btn" style="border-color:var(--accent); color:var(--accent);" onclick="copyTeamShareText()">📋 チーム分け結果をコピー</button>
+          <button class="preset-btn" onclick="toggleImportShareBox()">📥 共有テキストから読み込む</button>
+        </div>
+        <div id="share-textarea-wrap" class="share-textarea-wrap">
+          <textarea id="share-textarea" class="share-textarea" placeholder="ここにDiscord等で共有されたチーム分けテキストを貼り付けて「反映する」を押してください"></textarea>
+          <div style="display:flex; gap:8px; justify-content:flex-end;">
+            <button class="add-btn" onclick="applySharedTeamText()">✅ このチーム分けを反映する</button>
+            <button class="preset-btn" onclick="toggleImportShareBox(false)">閉じる</button>
+          </div>
         </div>
       </div>
 
@@ -1589,7 +1705,7 @@
 
     <!-- SECTION A: Member-Based 2-Row Tap UI (Red / Blue / Custom) -->
     <div id="modal-member-mode-area">
-      <!-- Quick Custom Member Picker (Shown when 'custom' source is active or team is empty) -->
+      <!-- Quick Custom Member Picker -->
       <div id="custom-member-picker-box" class="quick-member-selector" style="display:none;">
         <div class="picker-label" style="margin-bottom:6px;">
           <span>👥 相手チームのメンバーをタップして追加・解除（最大4名目安）</span>
@@ -1653,6 +1769,61 @@
 </div>
 
 <script>
+  // --- IFRAME & DISCORD ACTIVITY COMPATIBILITY LAYER (v21) ---
+  function showToast(msg, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const el = document.createElement('div');
+    el.className = `toast-msg ${type}`;
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.25s ease';
+      setTimeout(() => el.remove(), 260);
+    }, 3200);
+  }
+
+  function toggleCompactEmbedMode(forceState) {
+    if (typeof forceState === 'boolean') {
+      document.body.classList.toggle('compact-embed', forceState);
+    } else {
+      document.body.classList.toggle('compact-embed');
+    }
+  }
+
+  function initDiscordAndIframeSupport() {
+    const params = new URLSearchParams(window.location.search);
+    const frameId = params.get('frame_id');
+    const clientId = params.get('client_id') || '';
+    const isEmbedded = (window.self !== window.top) || Boolean(frameId);
+
+    if (isEmbedded) {
+      toggleCompactEmbedMode(true);
+    }
+
+    // Discord Embedded App SDK lightweight postMessage handshake
+    if (frameId && window.parent && window.parent !== window) {
+      try {
+        // Opcode 0: HANDSHAKE
+        window.parent.postMessage([0, {
+          v: 1,
+          encoding: 'json',
+          client_id: clientId,
+          frame_id: frameId
+        }], '*');
+
+        // Subscribe to READY / incoming messages gracefully
+        window.addEventListener('message', (event) => {
+          // Keeps channel alive without throwing errors
+          if (!event.data) return;
+        });
+      } catch (e) {
+        console.warn('Discord Activity handshake skipped:', e);
+      }
+    }
+  }
+
   // --- DATA DEFINITIONS ---
   const ROLE_COLORS = {
     "弓": "#0ea5e9",
@@ -1707,6 +1878,7 @@
     }
   };
 
+  // Updated 剣士 stats in v21: 連携・トス = 5, 制圧・防衛干渉 = 4
   const VANGUARD_DATA = {
     "拳": {
       concept: "インファイト・爆速回転王",
@@ -1722,12 +1894,12 @@
     },
     "剣士": {
       concept: "対空カウンター・遠距離斬撃",
-      stats: [3, 3, 4, 3, 4],
+      stats: [3, 3, 5, 4, 4],
       mfConcept: "対空迎撃・遠距離斬撃スイーパー",
-      mfStats: [3, 3, 4, 4, 4],
+      mfStats: [3, 3, 5, 4, 4],
       mfDesc: "【MF時】上下左右に広いアッパーで相手の浮かせ技を刈り取り、中間ラインから浮き球に遠距離爆発（斬撃）を合わせて直接ゴールを狙う。",
       fwConcept: "前線チェイサー・対空フィニッシャー",
-      fwStats: [4, 3, 3, 3, 4],
+      fwStats: [4, 3, 5, 4, 4],
       fwDesc: "【FW時】6.5秒のダッシュ切りと広いアッパー判定を活かし、相手GKのクリアボールや味方の浮き球に食らいついてねじ込む前線アタッカー。",
       pros: "拳・弓・風の浮かせ技を広いアッパー判定で止めてカウンターに持ち込める。中間ラインで様子を伺い、浮いた球に遠距離から爆発（斬撃）を合わせて直接ゴールを奪う決定力も持つ。ダッシュ切り6.5秒化で手数も向上。",
       cons: "GKとの単純な1vs1は通常攻撃で止められやすい。振りが長く判定理解が必要。ボールが背後に抜けると無力。"
@@ -1794,7 +1966,7 @@
     }
   };
 
-  // Base 21 Community Members (Updated エース: pos MF/FW, main 水, sub 剣)
+  // Base 21 Community Members
   const BASE_MEMBERS = [
     { name: "鈍茶(どんちゃ)", gk: "GK1", pos: ["MF"], main: "弓", sub: "雷 大剣", checked: false },
     { name: "ころ", gk: "GK1", pos: ["MF", "FW"], main: "大剣 雷 風", sub: "弓 拳 / 水(MFのみ) 剣", checked: false },
@@ -1821,7 +1993,6 @@
 
   let MEMBERS = [...BASE_MEMBERS];
 
-  // Load saved custom members from localStorage
   function loadCustomMembersFromStorage() {
     try {
       const saved = localStorage.getItem('kinetic_custom_members_v20');
@@ -1844,7 +2015,7 @@
         }
       }
     } catch (e) {
-      console.warn('Failed to load custom members:', e);
+      // Safe fallback when third-party iframe blocks localStorage
     }
   }
 
@@ -1853,7 +2024,7 @@
       const customs = MEMBERS.filter(m => m.isCustom);
       localStorage.setItem('kinetic_custom_members_v20', JSON.stringify(customs));
     } catch (e) {
-      console.warn('Failed to save custom members:', e);
+      // Safe fallback
     }
   }
 
@@ -1878,11 +2049,11 @@
 
     const name = nameInput.value.trim();
     if (!name) {
-      alert("メンバーの名前を入力してください。");
+      showToast("⚠️ メンバーの名前を入力してください。", "warn");
       return;
     }
     if (MEMBERS.some(m => m.name === name)) {
-      alert("同じ名前のメンバーが既に登録されています。");
+      showToast("⚠️ 同じ名前のメンバーが既に登録されています。", "warn");
       return;
     }
 
@@ -1897,18 +2068,18 @@
       pos,
       main,
       sub,
-      checked: true, // Auto-check newly added member
+      checked: true,
       isCustom: true
     });
 
     saveCustomMembersToStorage();
 
-    // Clear inputs
     nameInput.value = "";
     mainInput.value = "";
     subInput.value = "";
 
     renderMembers();
+    showToast(`✅ 「${name}」をリストに追加しました！`, "success");
   }
 
   function deleteCustomMember(name, event) {
@@ -1920,14 +2091,129 @@
     customEnemyNames = customEnemyNames.filter(n => n !== name);
     saveCustomMembersToStorage();
     renderMembers();
+    showToast(`🗑️ 「${name}」を削除しました。`, "info");
+  }
+
+  // --- TEAM SHARE & SYNC FOR DISCORD / IFRAME (v21) ---
+  function copyTeamShareText() {
+    const reds = MEMBERS.filter(m => memberTeams[m.name] === 'red');
+    const blues = MEMBERS.filter(m => memberTeams[m.name] === 'blue');
+
+    if (reds.length === 0 && blues.length === 0) {
+      showToast("⚠️ まだチーム分けが行われていません。", "warn");
+      return;
+    }
+
+    const formatMemberLine = (m) => {
+      if (currentChaosAssignments[m.name]) {
+        return `${m.name}[${currentChaosAssignments[m.name]}]`;
+      }
+      return m.name;
+    };
+
+    const redLine = reds.map(formatMemberLine).join(' / ');
+    const blueLine = blues.map(formatMemberLine).join(' / ');
+    const shareText = `🔴赤: ${redLine}\n🔵青: ${blueLine}`;
+
+    const copyFallback = (text) => {
+      const wrap = document.getElementById('share-textarea-wrap');
+      const ta = document.getElementById('share-textarea');
+      wrap.classList.add('active');
+      ta.value = text;
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast("📋 チーム分け結果をコピーしました！Discord等に貼り付けられます。", "success");
+      } catch (err) {
+        showToast("📋 下のテキストボックスからコピーしてください。", "info");
+      }
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareText).then(() => {
+        showToast("📋 チーム分け結果をクリップボードにコピーしました！", "success");
+      }).catch(() => {
+        copyFallback(shareText);
+      });
+    } else {
+      copyFallback(shareText);
+    }
+  }
+
+  function toggleImportShareBox(force) {
+    const wrap = document.getElementById('share-textarea-wrap');
+    if (typeof force === 'boolean') {
+      wrap.classList.toggle('active', force);
+    } else {
+      wrap.classList.toggle('active');
+    }
+  }
+
+  function applySharedTeamText() {
+    const ta = document.getElementById('share-textarea');
+    const raw = (ta.value || '').trim();
+    if (!raw) {
+      showToast("⚠️ 共有テキストを貼り付けてください。", "warn");
+      return;
+    }
+
+    memberTeams = {};
+    currentChaosAssignments = {};
+    memberLiveState = {};
+
+    const lines = raw.split(/\r?\n/);
+    let importedCount = 0;
+
+    lines.forEach(line => {
+      let team = null;
+      if (line.includes('赤') || line.toLowerCase().includes('red')) team = 'red';
+      else if (line.includes('青') || line.toLowerCase().includes('blue')) team = 'blue';
+      if (!team) return;
+
+      const content = line.replace(/^.*?[:：]/, '').trim();
+      const tokens = content.split(/\s*\/\s*|\s*、\s*|\s*,\s*/).map(s => s.trim()).filter(Boolean);
+
+      tokens.forEach(token => {
+        const match = token.match(/^(.+?)(?:\[(.+?)\])?$/);
+        if (!match) return;
+        const mName = match[1].trim();
+        const chaosStr = match[2] ? match[2].trim() : null;
+
+        if (!MEMBERS.some(m => m.name === mName)) {
+          MEMBERS.push({
+            name: mName,
+            gk: "",
+            pos: ["MF", "FW"],
+            main: "自由枠",
+            sub: "（なし）",
+            checked: true,
+            isCustom: true
+          });
+        }
+
+        const memberObj = MEMBERS.find(m => m.name === mName);
+        if (memberObj) memberObj.checked = true;
+        memberTeams[mName] = team;
+        if (chaosStr) currentChaosAssignments[mName] = chaosStr;
+        importedCount++;
+      });
+    });
+
+    if (importedCount === 0) {
+      showToast("⚠️ チーム情報を読み取れませんでした。「🔴赤: 名前 / 名前」の形式で貼り付けてください。", "warn");
+      return;
+    }
+
+    renderMembers();
+    toggleImportShareBox(false);
+    showToast(`✅ ${importedCount}名のチーム分け結果を同期しました！`, "success");
   }
 
   // --- MODAL & INTERACTIVE ENEMY MEMBER + ROLE PICKER ---
-  let modalEnemySource = 'red'; // 'red' | 'blue' | 'custom' | 'manual'
-  let customEnemyNames = [];    // names picked when source === 'custom'
-  let memberLiveState = {};     // { [memberName]: { pos: 'GK'|'MF'|'FW', role: '弓'|'大剣'|'雷'|'風'|'拳'|'剣'|'水'|null } }
+  let modalEnemySource = 'red';
+  let customEnemyNames = [];
+  let memberLiveState = {};
 
-  // Manual mode state
   let pickedEnemyGK = null;
   let pickedEnemyFields = [];
 
@@ -1947,11 +2233,9 @@
     return { mains, subs, others };
   }
 
-  // Personal meta smart position suggestion when a role is clicked
   function suggestPositionForMemberRole(member, shortRole) {
     const name = member.name;
 
-    // Specific personal meta rules
     if (name === "いちごみるく") {
       if (shortRole === "弓") return "GK";
       if (shortRole === "雷") return "FW";
@@ -2004,7 +2288,6 @@
       return "FW";
     }
 
-    // General role & aptitude fallback
     if (shortRole === "水") {
       if (HYDRO_MF_ONLY.includes(name)) return "MF";
       if (HYDRO_FW_MASTERS.includes(name)) return "FW";
@@ -2015,7 +2298,6 @@
       return (shortRole === "拳" || shortRole === "剣") ? "FW" : "MF";
     }
 
-    // If no one else is currently GK and this member is GK1/GK2 and picked a GK-capable role
     const activeMembers = getActiveModalEnemyMembers();
     const otherHasGK = activeMembers.some(m => m.name !== name && memberLiveState[m.name] && memberLiveState[m.name].pos === "GK" && memberLiveState[m.name].role);
     if (!otherHasGK && (member.gk === "GK1" || member.gk === "GK2") && GK_CAPABLE_SHORT.includes(shortRole)) {
@@ -2288,7 +2570,7 @@
     renderLiveFilteredAlerts();
   }
 
-  // --- UNIFIED LIVE ALERT GENERATOR (Member Mode & Manual Mode) ---
+  // --- UNIFIED LIVE ALERT GENERATOR ---
   function renderLiveFilteredAlerts() {
     const container = document.getElementById('live-filtered-alerts');
     const items = [];
@@ -2514,7 +2796,7 @@
     }
   }
 
-  // --- TAB 2: PARTY SIMULATOR LOGIC (Dynamic Formations) ---
+  // --- TAB 2: PARTY SIMULATOR LOGIC ---
   let currentMatchFormat = '4v4';
 
   const PRESETS_4V4 = [
@@ -3051,7 +3333,7 @@
     
     const checkedMembers = MEMBERS.filter(m => m.checked);
     if (checkedMembers.length === 0) {
-      alert("チェックされたメンバーがいません。参加者にチェックを入れてください。");
+      showToast("⚠️ チェックされたメンバーがいません。参加者にチェックを入れてください。", "warn");
       return;
     }
 
@@ -3143,7 +3425,6 @@
       });
 
     } else if (mode === 'chaos') {
-      // v20 Chaos Mode: Guarantee 1 GK per team, and randomize MF / FW completely for remaining players
       let redGkAssigned = false;
       let blueGkAssigned = false;
       
@@ -3316,6 +3597,7 @@
 
   // Initialize on load
   window.addEventListener('DOMContentLoaded', () => {
+    initDiscordAndIframeSupport();
     loadCustomMembersFromStorage();
     renderPresetButtons();
     updatePartySim();
