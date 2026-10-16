@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>キネティックキック 戦術・編成シミュレーター v21</title>
+  <meta name="activity-build" content="kk-sim-activity-singlefile-2026-10-16-r38">
+  <title>キネティックキック 戦術・編成シミュレーター（Activity対応版）</title>
   <style>
     :root {
       --bg-dark: #0f172a;
       --bg-card: #1e293b;
-      --bg-card-hover: #26354d;
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
       --accent: #38bdf8;
@@ -30,12 +30,35 @@
       padding: 0;
     }
 
+    html {
+      min-height: 100%;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+    button, input, select, textarea, label, [data-action], [data-change] {
+      touch-action: manipulation;
+    }
+    button, [data-action] {
+      -webkit-tap-highlight-color: rgba(56, 189, 248, 0.22);
+    }
+    :where(button, input, select, textarea, [data-action], [data-change]):focus-visible {
+      outline: 2px solid #7dd3fc;
+      outline-offset: 2px;
+    }
+    body.modal-open {
+      overflow: hidden;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", "Meiryo", sans-serif;
       background-color: var(--bg-dark);
       color: var(--text-main);
       line-height: 1.6;
       padding-bottom: 80px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
     }
 
     header {
@@ -109,7 +132,8 @@
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
       text-align: center;
       animation: toastIn 0.25s ease forwards;
-      pointer-events: auto;
+      /* Toasts contain no interactive controls: allow clicks to pass through. */
+      pointer-events: none;
     }
     .toast-msg.warn {
       border-color: #f59e0b;
@@ -188,6 +212,7 @@
       padding: 18px;
       margin-bottom: 16px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      min-width: 0;
     }
 
     .card-title {
@@ -201,6 +226,8 @@
       gap: 8px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 8px;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
     .badge {
@@ -272,7 +299,7 @@
     /* Party Selector */
     .party-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
       gap: 12px;
       margin-bottom: 18px;
     }
@@ -423,13 +450,20 @@
     /* Two Column Grid */
     .grid-2 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
       gap: 16px;
     }
 
     /* Tables */
     .table-wrap {
       overflow-x: auto;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+    .table-wrap:focus-visible {
+      outline: 2px solid #7dd3fc;
+      outline-offset: 2px;
+      border-radius: 4px;
     }
 
     table {
@@ -465,7 +499,6 @@
     }
     .badge-gold { background: rgba(245, 158, 11, 0.25); color: #fbbf24; border: 1px solid #f59e0b; }
     .badge-basic { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #38bdf8; }
-    .badge-sub { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid #475569; }
     .badge-gk1 { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
     .badge-gk2 { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
     .badge-pos { background: #1e293b; color: #f8fafc; border: 1px solid #475569; }
@@ -538,8 +571,8 @@
       box-shadow: 0 0 10px var(--accent-glow);
     }
 
-    /* Share / Sync Box for Discord Activity & iframe */
-    .share-sync-box {
+    /* Team share box for Discord Activity & iframe */
+    .team-share-box {
       background: rgba(56, 189, 248, 0.06);
       border: 1px dashed var(--accent);
       border-radius: 10px;
@@ -576,7 +609,7 @@
     /* Member Cards (High-Contrast Checked State) */
     .member-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 235px), 1fr));
       gap: 10px;
     }
 
@@ -853,11 +886,15 @@
       align-items: center;
       padding: 16px;
       opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
       transition: opacity 0.2s ease;
     }
     .modal-overlay.active {
       display: flex;
       opacity: 1;
+      pointer-events: auto;
+      visibility: visible;
     }
     .modal-content {
       background: var(--bg-card);
@@ -993,7 +1030,7 @@
     /* Member Picker Cards in Modal */
     .enemy-member-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
       gap: 10px;
       margin-bottom: 14px;
     }
@@ -1161,9 +1198,40 @@
       border-color: var(--accent);
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 760px) {
       .nav-tabs {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .nav-tabs .tab-btn {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .mode-switch-bar {
+        flex-wrap: wrap;
+      }
+      .mode-switch-btn {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .card {
+        padding: 14px;
+      }
+      .card-title > * {
+        min-width: 0;
+        max-width: 100%;
+      }
+      .team-share-box > * {
+        min-width: 0;
+        max-width: 100%;
+      }
+      .team-share-box button,
+      .preset-group button {
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+      .add-member-form > * {
+        min-width: 0;
+        max-width: 100%;
       }
       header h1 {
         font-size: 1.15rem;
@@ -1181,28 +1249,61 @@
         grid-template-columns: 1fr;
       }
     }
+
+    #runtime-status {
+      /* Keep diagnostics in document flow: when JavaScript is blocked, the warning
+         must not cover the controls and make the UI appear to have vanished. */
+      position: relative;
+      inset: auto;
+      z-index: auto;
+      width: min(620px, calc(100% - 24px));
+      max-height: none;
+      overflow: visible;
+      margin: 8px auto;
+      padding: 9px 12px;
+      border: 1px solid #f59e0b;
+      border-radius: 8px;
+      background: rgba(30, 41, 59, 0.98);
+      color: #fde68a;
+      font-size: 0.76rem;
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+      pointer-events: auto;
+      user-select: text;
+    }
+    #runtime-status[data-state="error"] {
+      border-color: #ef4444;
+      color: #fecaca;
+      background: rgba(69, 10, 10, 0.98);
+    }
+    #runtime-status[hidden] { display: none !important; }
+
   </style>
 </head>
 <body>
 
-<div id="toast-container"></div>
+<div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+<div id="runtime-status" role="status" aria-live="polite" data-state="loading">
+  JavaScriptの起動を確認しています。この表示が消えない場合、スクリプトが実行されていません。ConsoleでCSP違反やJavaScriptエラーを確認してください。ホスト側がインラインJavaScriptを禁止している場合、HTML内部のコードだけでは実行を許可できません。
+</div>
 
 <header>
   <div style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap;">
     <h1>⚽ キネティックキック 戦術・編成シミュレーター</h1>
-    <button class="preset-btn" style="padding:3px 8px; font-size:0.72rem;" onclick="toggleCompactEmbedMode()" title="Discordアクティビティやiframe小窓用の省スペース表示を切り替えます">🖥️ 小窓/スリム表示切替</button>
+    <button type="button" class="preset-btn" style="padding:3px 8px; font-size:0.72rem;" id="compact-mode-toggle" aria-pressed="false" data-action="toggleCompactEmbedMode()" title="Discordアクティビティやiframe小窓用の省スペース表示を切り替えます">🖥️ 小窓/スリム表示切替</button>
   </div>
-  <p>iframe・Discordアクティビティ対応 / メンバー自由追加・チーム共有・試合中アラート対応版 (v21)</p>
+  <p>Discordアクティビティ・iframe対応 / メンバー自由追加・チーム共有・試合中アラート対応版 (r36)</p>
 </header>
 
 <div class="container">
   <!-- Navigation -->
-  <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('tab-roles', this)">① 役職別パラメーター</button>
-    <button class="tab-btn" onclick="switchTab('tab-party', this)">② 編成シミュレーター</button>
-    <button class="tab-btn" onclick="switchTab('tab-matchup', this)">③ GK相性＆実戦のコツ</button>
-    <button class="tab-btn" onclick="switchTab('tab-members', this)">④ ランダム振り分け</button>
-    <button class="tab-btn" onclick="switchTab('tab-draft', this)">⑤ アラート＆戦術ボード</button>
+  <div class="nav-tabs" role="group" aria-label="シミュレーターの画面">
+    <button type="button" class="tab-btn active" aria-pressed="true" data-action="switchTab('tab-roles', this)">① 役職別パラメーター</button>
+    <button type="button" class="tab-btn" aria-pressed="false" data-action="switchTab('tab-party', this)">② 編成シミュレーター</button>
+    <button type="button" class="tab-btn" aria-pressed="false" data-action="switchTab('tab-matchup', this)">③ GK相性＆実戦のコツ</button>
+    <button type="button" class="tab-btn" aria-pressed="false" data-action="switchTab('tab-members', this)">④ ランダム振り分け</button>
+    <button type="button" class="tab-btn" aria-pressed="false" data-action="switchTab('tab-draft', this)">⑤ アラート＆戦術ボード</button>
   </div>
 
   <!-- TAB 1: ROLE PARAMETERS & COMBOS -->
@@ -1211,9 +1312,9 @@
       <div class="card-title">
         <span>🔍 ポジション＆役職パラメーター比較（実戦反映版）</span>
       </div>
-      <div style="display:flex; gap:8px; margin-bottom:14px;">
-        <button id="mode-vanguard-btn" class="preset-btn active" onclick="setRoleMode('vanguard')">⚔️ フィールド（MF / FW）パラメーター（全7役職）</button>
-        <button id="mode-gk-btn" class="preset-btn" onclick="setRoleMode('gk')">🛡️ GKパラメーター（4役職）</button>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+        <button type="button" id="mode-vanguard-btn" class="preset-btn active" aria-pressed="true" data-action="setRoleMode('vanguard')">⚔️ フィールド（MF / FW）パラメーター（全7役職）</button>
+        <button type="button" id="mode-gk-btn" class="preset-btn" aria-pressed="false" data-action="setRoleMode('gk')">🛡️ GKパラメーター（4役職）</button>
       </div>
 
       <div id="role-Selector-pills" class="role-pills"></div>
@@ -1232,7 +1333,7 @@
       <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">
         <span class="combo-badge badge-gold">王道コンボ</span>：キネティックキックで超有名。決まれば確定級だが警戒もされやすい。／ <span class="combo-badge badge-basic">基本コンボ</span>：これがないと役職が成立しない基本の型。
       </p>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="役職スキルCTとコンボ一覧（横スクロール可能）">
         <table>
           <thead>
             <tr>
@@ -1354,8 +1455,8 @@
 
       <!-- 4vs4 / 3vs3 Mode Switcher -->
       <div class="mode-switch-bar">
-        <button id="btn-mode-4v4" class="mode-switch-btn active" onclick="setMatchFormat('4v4')">🏟️ 4vs4 モード（フィールド3枠）</button>
-        <button id="btn-mode-3v3" class="mode-switch-btn" onclick="setMatchFormat('3v3')">⚡ 3vs3 モード（フィールド2枠）</button>
+        <button type="button" id="btn-mode-4v4" class="mode-switch-btn active" aria-pressed="true" data-action="setMatchFormat('4v4')">🏟️ 4vs4 モード（フィールド3枠）</button>
+        <button type="button" id="btn-mode-3v3" class="mode-switch-btn" aria-pressed="false" data-action="setMatchFormat('3v3')">⚡ 3vs3 モード（フィールド2枠）</button>
       </div>
 
       <!-- Presets Container -->
@@ -1368,7 +1469,7 @@
             <span>🛡️ GK（ゴールキーパー）</span>
             <span id="gk-concept" style="color:#10b981; font-size:0.72rem;"></span>
           </div>
-          <select id="slot-gk" class="slot-select" onchange="updatePartySim()">
+          <select id="slot-gk" class="slot-select" data-change="updatePartySim()">
             <option value="大剣">大剣（粘り・高威圧）</option>
             <option value="弓">弓（妨害・遠距離サポート）</option>
             <option value="雷">雷（初動奪取・高機動カバー）</option>
@@ -1381,14 +1482,14 @@
         <div class="slot-box slot-mf" id="box-field1">
           <div class="slot-label">
             <span>
-              <select id="pos-field1" class="pos-select" onchange="updatePartySim(); updateBoxColors();">
+              <select id="pos-field1" class="pos-select" data-change="updatePartySimAndBoxColors()">
                 <option value="MF" selected>MF</option>
                 <option value="FW">FW</option>
               </select>
             </span>
             <span id="field1-concept" style="color:var(--accent); font-size:0.72rem;"></span>
           </div>
-          <select id="slot-field1" class="slot-select" onchange="updatePartySim()">
+          <select id="slot-field1" class="slot-select" data-change="updatePartySim()">
             <option value="風法器" selected>風法器</option>
             <option value="水法器">水法器</option>
             <option value="弓">弓</option>
@@ -1404,14 +1505,14 @@
         <div class="slot-box slot-fw" id="box-field2">
           <div class="slot-label">
             <span>
-              <select id="pos-field2" class="pos-select" onchange="updatePartySim(); updateBoxColors();">
+              <select id="pos-field2" class="pos-select" data-change="updatePartySimAndBoxColors()">
                 <option value="MF">MF</option>
                 <option value="FW" selected>FW</option>
               </select>
             </span>
             <span id="field2-concept" style="color:#f87171; font-size:0.72rem;"></span>
           </div>
-          <select id="slot-field2" class="slot-select" onchange="updatePartySim()">
+          <select id="slot-field2" class="slot-select" data-change="updatePartySim()">
             <option value="拳" selected>拳</option>
             <option value="水法器">水法器</option>
             <option value="雷">雷</option>
@@ -1427,14 +1528,14 @@
         <div id="box-field3" class="slot-box slot-fw">
           <div class="slot-label">
             <span>
-              <select id="pos-field3" class="pos-select" onchange="updatePartySim(); updateBoxColors();">
+              <select id="pos-field3" class="pos-select" data-change="updatePartySimAndBoxColors()">
                 <option value="MF">MF</option>
                 <option value="FW" selected>FW</option>
               </select>
             </span>
             <span id="field3-concept" style="color:#f87171; font-size:0.72rem;"></span>
           </div>
-          <select id="slot-field3" class="slot-select" onchange="updatePartySim()">
+          <select id="slot-field3" class="slot-select" data-change="updatePartySim()">
             <option value="弓" selected>弓</option>
             <option value="水法器">水法器</option>
             <option value="拳">拳</option>
@@ -1468,7 +1569,7 @@
   <div id="tab-matchup" class="tab-content">
     <div class="card">
       <div class="card-title">🛡️ GK 4役職の相性マトリクス＆コンセプト</div>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="GK相性マトリクス（横スクロール可能）">
         <table>
           <thead>
             <tr>
@@ -1509,2104 +1610,4 @@
               <td>雷</td>
             </tr>
           </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">⚡ 実戦で勝つための4つのコツ（全役職共通）</div>
-        <div class="synergy-list">
-          <div class="synergy-item combo">
-            <strong>① 相手の「役職・位置」を見て嫌がる軌道を押し付ける</strong>
-            相手が弓なら空中から干渉されやすいため地上コンボで完結させる、大剣が相手なら地上は固いため強いコンボで浮かせて頭上を狙うなど、相手の裏をかく（バレにくい）選択で理不尽を押し付けると得点が通りやすい。
-          </div>
-          <div class="synergy-item combo">
-            <strong>② 味方を信じる連携とサポートへの切り替え</strong>
-            1人で強引に点を取るのは難しいため、味方が運んでくれるのを信じてポジションを取ったり、時には相手の攻撃の勢いを利用する意識が大切。自分で決めるのが難しい体勢なら無理をせず、トスや妨害など味方のサポートに回る。
-          </div>
-          <div class="synergy-item combo">
-            <strong>③ 相手の「残り札（CT・爆発）」を把握して自分の動きを通す</strong>
-            攻守ともに「あの相手は今爆発が残っていないな」「今は遠距離から干渉できないはず」と相手の残り札を把握しておくと、自分のやりたいシュートやクリアを安全に通しやすくなる。
-          </div>
-          <div class="synergy-item combo">
-            <strong>④ 状況に応じて「通常攻撃」を絡める</strong>
-            コンボやクリアの際、スキルの合間に通常攻撃を挟むことで、飛距離・弾速が伸びたり爆発CT短縮（1.5秒）の恩恵を得られて有利になる場面が多い。余裕がある時は意識して混ぜていくと手数が増える。
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🧤 GKで球を止めやすくする意識・コツ</div>
-        <div class="synergy-list">
-          <div class="synergy-item">
-            <strong>相手の触れられない位置へのクリア（タイマンの拒否）</strong>
-            GKは「タイマンで必ず勝つ」ことよりも、タイマン自体を避けて相手に思うようなプレイをさせないことが重要。クリアする際は、相手が触れられない位置や安全なコースを狙ってボールを出す。
-          </div>
-          <div class="synergy-item">
-            <strong>基本は自己完結、味方に託すのは安全な時のみ</strong>
-            「味方がいるから任せよう」という判断も大事だが、GKは仲間を過信しすぎず、基本は自分で何とかする意識を持つ。味方に託すのは「相手が干渉できない」「タイミングが完璧」という確証がある時のみにする。
-          </div>
-          <div class="synergy-item">
-            <strong>ボールの正面ではなく「斜め前の軌道」に置く</strong>
-            壁バウンドの角度変更や高速シュートに対しては、真後ろで待つよりも斜め前のコースに入って判定を置く（偏差セーブ）方が圧倒的に拾いやすい。
-          </div>
-          <div class="synergy-item">
-            <strong>「止め」直後のセット入力とスタミナ管理</strong>
-            雷や風の「止め」発動前に次のアクション（通常・爆発・押し出し・ワープ）をセットで決めておく。無駄なスキルによる硬直やスタミナ切れが最大の失点原因になるため、不要なフェイント等は避けて温存を意識する。
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB 4: MEMBERS & RED-BLUE TEAM MAKER -->
-  <div id="tab-members" class="tab-content">
-    <div class="card">
-      <div class="card-title">👥 メンバー使用役職リスト＆赤青戦メーカー</div>
-      <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
-        参加するメンバーにチェックを入れるとカードが明るく光ります。その状態で振り分けボタンを押してください。<br>
-        <strong style="color:var(--accent);">【GK均等ランダム】</strong>：GK1を両チームに優先配置し、不足時はGK2で補います（MF/FWバランスも自動調整）。<br>
-        <strong style="color:var(--text-main);">【完全ランダム】</strong>：GK適性を一切無視して完全にシャッフルします。<br>
-        <strong style="color:#f59e0b;">【🃏 役職闇鍋モード】</strong>：両チームにGK1名を配置しつつ、残りのメンバーのポジション（MF/FW比率も固定せず完全ランダム）と担当役職を強制決定します！
-      </p>
-
-      <!-- Custom Member Addition Form -->
-      <div class="add-member-box">
-        <div class="add-member-title">
-          <span>👤 ゲスト・新規メンバーを自由に追加（追加したメンバーは保存されます）</span>
-          <span style="font-size:0.72rem; color:var(--text-sub);">※役職はスペース区切りで複数入力可（例：水 雷）</span>
-        </div>
-        <div class="add-member-form">
-          <input type="text" id="new-m-name" class="form-input" placeholder="名前（必須）" style="width:150px;">
-          <select id="new-m-gk" class="form-select">
-            <option value="">GKなし（フィールド専任）</option>
-            <option value="GK1">GK1（主力GK）</option>
-            <option value="GK2">GK2（サブGK）</option>
-          </select>
-          <select id="new-m-pos" class="form-select">
-            <option value="MF,FW">MF / FW 両対応</option>
-            <option value="MF">MF のみ</option>
-            <option value="FW">FW のみ</option>
-          </select>
-          <input type="text" id="new-m-main" class="form-input" placeholder="メイン役職 (例: 拳 雷)" style="width:165px;">
-          <input type="text" id="new-m-sub" class="form-input" placeholder="サブ役職 (例: 弓 風)" style="width:165px;">
-          <button class="add-btn" onclick="addNewCustomMember()">＋ リストに追加</button>
-        </div>
-      </div>
-
-      <div class="control-bar">
-        <button class="preset-btn" onclick="checkAllMembers(false)">⬜ チェック全解除</button>
-        <button class="preset-btn" style="border-color:#10b981; color:#10b981;" onclick="randomTeamsFromChecked('balanced')">🛡️ GK均等ランダム振り分け</button>
-        <button class="preset-btn" style="border-color:#a855f7; color:#a855f7;" onclick="randomTeamsFromChecked('pure')">🎲 完全ランダム振り分け</button>
-        <button class="preset-btn" style="border-color:#f59e0b; color:#f59e0b; font-weight:800;" onclick="randomTeamsFromChecked('chaos')">🃏 役職闇鍋モードで振り分け</button>
-        <button class="preset-btn" onclick="resetTeams()">🔄 所属リセット</button>
-        <span style="font-size:0.85rem; color:var(--text-sub); margin-left:auto;">チェック中: <strong id="checked-count" style="color:var(--accent); font-size:1.05rem;">0</strong> 名</span>
-      </div>
-
-      <!-- Team Division Result inside Tab 4 -->
-      <div class="grid-2" style="margin-bottom:12px;">
-        <div class="slot-box" style="border-color:#ef4444; border-top-width: 4px;">
-          <div class="slot-label" style="color:#ef4444; font-size:0.95rem;">🔴 赤チーム（<span id="red-count-tab4">0</span>人）</div>
-          <div id="red-team-list-tab4" style="font-size:0.84rem; min-height:60px;">メンバーを選択してください</div>
-        </div>
-        <div class="slot-box" style="border-color:#3b82f6; border-top-width: 4px;">
-          <div class="slot-label" style="color:#3b82f6; font-size:0.95rem;">🔵 青チーム（<span id="blue-count-tab4">0</span>人）</div>
-          <div id="blue-team-list-tab4" style="font-size:0.84rem; min-height:60px;">メンバーを選択してください</div>
-        </div>
-      </div>
-
-      <!-- Discord / iframe Team Share & Sync Bar -->
-      <div class="share-sync-box">
-        <div style="font-size:0.8rem; color:var(--text-sub);">
-          <strong style="color:var(--accent);">💬 Discord・メンバー間同期：</strong>振り分け結果をテキストでコピーしたり、他の人が作ったチーム結果を読み込めます。
-        </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="preset-btn" style="border-color:var(--accent); color:var(--accent);" onclick="copyTeamShareText()">📋 チーム分け結果をコピー</button>
-          <button class="preset-btn" onclick="toggleImportShareBox()">📥 共有テキストから読み込む</button>
-        </div>
-        <div id="share-textarea-wrap" class="share-textarea-wrap">
-          <textarea id="share-textarea" class="share-textarea" placeholder="ここにDiscord等で共有されたチーム分けテキストを貼り付けて「反映する」を押してください"></textarea>
-          <div style="display:flex; gap:8px; justify-content:flex-end;">
-            <button class="add-btn" onclick="applySharedTeamText()">✅ このチーム分けを反映する</button>
-            <button class="preset-btn" onclick="toggleImportShareBox(false)">閉じる</button>
-          </div>
-        </div>
-      </div>
-
-      <div id="member-grid" class="member-grid"></div>
-    </div>
-  </div>
-
-  <!-- TAB 5: DRAFT & ALERTS -->
-  <div id="tab-draft" class="tab-content">
-    <div class="card">
-      <div class="card-title">
-        <span>🆚 チーム間警戒アラート・事前作戦ボード</span>
-      </div>
-      <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:16px;">
-        タブ④のチーム振り分け結果と、メンバーの得意役職から予測される試合前の警戒アラートです。（試合中に相手メンバーの役職・ポジションが確定した際は、右下の「⚠️ 試合中アラート確認」ボタンからメンバーごとにワンタップで絞り込めます）
-      </p>
-
-      <!-- Team Division Result inside Tab 5 -->
-      <div class="grid-2" style="margin-bottom:20px;">
-        <div class="slot-box" style="border-color:#ef4444; border-top-width: 4px;">
-          <div class="slot-label" style="color:#ef4444; font-size:0.95rem;">🔴 赤チーム（<span id="red-count">0</span>人）</div>
-          <div id="red-team-list" style="font-size:0.84rem; min-height:60px;">メンバーを選択してください</div>
-        </div>
-        <div class="slot-box" style="border-color:#3b82f6; border-top-width: 4px;">
-          <div class="slot-label" style="color:#3b82f6; font-size:0.95rem;">🔵 青チーム（<span id="blue-count">0</span>人）</div>
-          <div id="blue-team-list" style="font-size:0.84rem; min-height:60px;">メンバーを選択してください</div>
-        </div>
-      </div>
-
-      <!-- Matchup Alerts Area -->
-      <div id="matchup-alerts-container" class="grid-2">
-        <div class="alert-box" style="border-top: 3px solid #ef4444;">
-          <div class="alert-title" style="color:#ef4444;">🔴 赤チームへの事前警戒アラート</div>
-          <div id="red-alerts" class="synergy-list">
-            <div style="font-size:0.8rem; color:var(--text-sub);">チーム分けが完了していません。</div>
-          </div>
-        </div>
-        <div class="alert-box" style="border-top: 3px solid #3b82f6;">
-          <div class="alert-title" style="color:#3b82f6;">🔵 青チームへの事前警戒アラート</div>
-          <div id="blue-alerts" class="synergy-list">
-            <div style="font-size:0.8rem; color:var(--text-sub);">チーム分けが完了していません。</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Floating Action Button for In-Game Alert Check -->
-<button class="fab-btn" onclick="openAlertModal()">
-  <span>⚠️ 試合中アラート確認</span>
-</button>
-
-<!-- Modal Overlay: Interactive Enemy Member & Role Picker -->
-<div id="alert-modal" class="modal-overlay" onclick="closeAlertModal(event)">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <button class="modal-close" onclick="closeAlertModal(event)">&times;</button>
-    <div class="card-title" style="margin-bottom: 8px; font-size: 1.15rem;">
-      <span>🎯 試合中・相手メンバー＆役職クリック対策ボード</span>
-    </div>
-    <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">
-      相手チームのメンバーごとに<strong>「ポジション（GK / MF / FW）」と「使用役職」</strong>をタップしてください。兼任メンバーのメイン役職（★）や個人メタ（得意ポジ自動補助）を踏まえたピンポイント対策にリアルタイムで絞り込みます。
-    </p>
-
-    <!-- Source Switcher Bar -->
-    <div class="modal-source-bar">
-      <button id="src-btn-red" class="modal-source-btn src-red active" onclick="setModalEnemySource('red')">🔴 赤チームを相手にする</button>
-      <button id="src-btn-blue" class="modal-source-btn src-blue" onclick="setModalEnemySource('blue')">🔵 青チームを相手にする</button>
-      <button id="src-btn-custom" class="modal-source-btn src-custom" onclick="setModalEnemySource('custom')">👥 相手メンバーを直接選ぶ</button>
-      <button id="src-btn-manual" class="modal-source-btn src-manual" onclick="setModalEnemySource('manual')">🛠️ 役職のみ直接クリック</button>
-    </div>
-
-    <!-- SECTION A: Member-Based 2-Row Tap UI (Red / Blue / Custom) -->
-    <div id="modal-member-mode-area">
-      <!-- Quick Custom Member Picker -->
-      <div id="custom-member-picker-box" class="quick-member-selector" style="display:none;">
-        <div class="picker-label" style="margin-bottom:6px;">
-          <span>👥 相手チームのメンバーをタップして追加・解除（最大4名目安）</span>
-          <button class="preset-btn" style="padding:2px 8px; font-size:0.72rem;" onclick="clearCustomEnemyMembers()">クリア</button>
-        </div>
-        <div id="custom-member-pills" class="picker-btn-group"></div>
-      </div>
-
-      <div class="picker-label" style="margin-bottom:8px;">
-        <span id="member-mode-subtitle">📋 相手メンバーの「ポジ」＋「役職」をタップ（役職タップで定番ポジが自動セットされます）</span>
-        <button class="preset-btn" style="padding:3px 10px; font-size:0.74rem;" onclick="clearMemberSelections()">🔄 役職選択をリセット</button>
-      </div>
-
-      <!-- Member Cards Container -->
-      <div id="modal-enemy-member-cards" class="enemy-member-list"></div>
-    </div>
-
-    <!-- SECTION B: Manual Role-Only Picker (Fallback / Quick Mode) -->
-    <div id="modal-manual-mode-area" style="display:none;">
-      <!-- Step 1: Enemy GK Picker -->
-      <div class="picker-section">
-        <div class="picker-label">
-          <span>🛡️ 相手GKの役職をクリック（1つ選択）</span>
-          <button class="preset-btn" style="padding:3px 10px; font-size:0.74rem;" onclick="clearEnemyPicks()">🔄 選択クリア</button>
-        </div>
-        <div class="picker-btn-group" id="enemy-gk-picker">
-          <button class="enemy-pick-btn gk-pick" data-gk="大剣" onclick="selectEnemyGK('大剣')">🛡️ 大剣GK</button>
-          <button class="enemy-pick-btn gk-pick" data-gk="弓" onclick="selectEnemyGK('弓')">🛡️ 弓GK</button>
-          <button class="enemy-pick-btn gk-pick" data-gk="雷" onclick="selectEnemyGK('雷')">🛡️ 雷GK</button>
-          <button class="enemy-pick-btn gk-pick" data-gk="風法器" onclick="selectEnemyGK('風法器')">🛡️ 風法器GK</button>
-        </div>
-      </div>
-
-      <!-- Step 2: Enemy Field Roles Picker -->
-      <div class="picker-section">
-        <div class="picker-label">
-          <span>⚔️ 相手フィールド（MF / FW）にいる役職をクリック（複数選択可）</span>
-        </div>
-        <div class="picker-btn-group" id="enemy-field-picker">
-          <button class="enemy-pick-btn" data-role="水FW" onclick="toggleEnemyField('水FW')">🌊 水(FW/前残り)</button>
-          <button class="enemy-pick-btn" data-role="水MF" onclick="toggleEnemyField('水MF')">💧 水(MF)</button>
-          <button class="enemy-pick-btn" data-role="弓" onclick="toggleEnemyField('弓')">🏹 弓</button>
-          <button class="enemy-pick-btn" data-role="風法器" onclick="toggleEnemyField('風法器')">🌪️ 風法器</button>
-          <button class="enemy-pick-btn" data-role="拳" onclick="toggleEnemyField('拳')">🥊 拳</button>
-          <button class="enemy-pick-btn" data-role="雷" onclick="toggleEnemyField('雷')">⚡ 雷</button>
-          <button class="enemy-pick-btn" data-role="ダブル雷" onclick="toggleEnemyField('ダブル雷')">⚡⚡ ダブル雷(2人)</button>
-          <button class="enemy-pick-btn" data-role="大剣" onclick="toggleEnemyField('大剣')">⚔️ 大剣</button>
-          <button class="enemy-pick-btn" data-role="剣士" onclick="toggleEnemyField('剣士')">🗡️ 剣士</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Output Area for Filtered Alerts -->
-    <div class="alert-box" style="border-top: 3px solid #f59e0b;">
-      <div class="alert-title" style="color:#fbbf24;">⚡ 確定した相手編成へのピンポイント警戒・攻略法</div>
-      <div id="live-filtered-alerts" class="synergy-list">
-        <div style="font-size:0.84rem; color:var(--text-sub);">上のカードから相手メンバーが使っている役職・ポジションをクリックすると、ここに具体的な対策が表示されます。</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // --- IFRAME & DISCORD ACTIVITY COMPATIBILITY LAYER (v21) ---
-  function showToast(msg, type = 'info') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const el = document.createElement('div');
-    el.className = `toast-msg ${type}`;
-    el.textContent = msg;
-    container.appendChild(el);
-    setTimeout(() => {
-      el.style.opacity = '0';
-      el.style.transition = 'opacity 0.25s ease';
-      setTimeout(() => el.remove(), 260);
-    }, 3200);
-  }
-
-  function toggleCompactEmbedMode(forceState) {
-    if (typeof forceState === 'boolean') {
-      document.body.classList.toggle('compact-embed', forceState);
-    } else {
-      document.body.classList.toggle('compact-embed');
-    }
-  }
-
-  function initDiscordAndIframeSupport() {
-    const params = new URLSearchParams(window.location.search);
-    const frameId = params.get('frame_id');
-    const clientId = params.get('client_id') || '';
-    const isEmbedded = (window.self !== window.top) || Boolean(frameId);
-
-    if (isEmbedded) {
-      toggleCompactEmbedMode(true);
-    }
-
-    // Discord Embedded App SDK lightweight postMessage handshake
-    if (frameId && window.parent && window.parent !== window) {
-      try {
-        // Opcode 0: HANDSHAKE
-        window.parent.postMessage([0, {
-          v: 1,
-          encoding: 'json',
-          client_id: clientId,
-          frame_id: frameId
-        }], '*');
-
-        // Subscribe to READY / incoming messages gracefully
-        window.addEventListener('message', (event) => {
-          // Keeps channel alive without throwing errors
-          if (!event.data) return;
-        });
-      } catch (e) {
-        console.warn('Discord Activity handshake skipped:', e);
-      }
-    }
-  }
-
-  // --- DATA DEFINITIONS ---
-  const ROLE_COLORS = {
-    "弓": "#0ea5e9",
-    "大剣": "#f59e0b",
-    "雷": "#a855f7",
-    "風法器": "#10b981",
-    "拳": "#ef4444",
-    "剣士": "#cbd5e1",
-    "水法器": "#3b82f6",
-    "風": "#10b981",
-    "水": "#3b82f6",
-    "剣": "#cbd5e1"
-  };
-
-  const ALL_ROLES = ["弓", "大剣", "雷", "風法器", "拳", "剣士", "水法器"];
-  const SHORT_ROLES = ["弓", "大剣", "雷", "風", "拳", "剣", "水"];
-  const GK_CAPABLE_SHORT = ["弓", "大剣", "雷", "風"];
-
-  const HYDRO_FW_MASTERS = ["すい", "長瀬川優紀", "あーるぐれい", "壱語兄さん", "エース"];
-  const HYDRO_MF_ONLY = ["ころ", "丘丘人殺手", "いちごみるく"];
-  const FIST_MASTERS = ["ユニ", "パイモンの親", "本物D旅人"];
-  const BOW_GK_MASTERS = ["鈍茶(どんちゃ)", "丘丘人殺手", "いちごみるく", "あーるぐれい", "shell™(饂飩)", "みかげくん"];
-
-  const GK_DATA = {
-    "弓": {
-      concept: "遠距離サポート・妨害",
-      stats: [5, 3, 2, 5, 5],
-      shortDesc: "対空最強＆4vs3形成。投擲＋爆発の緊急セーブと、味方の浮かせを射抜くチャージ矢が凶悪。",
-      pros: "対空中戦において最強。矢で疑似4vs3を作れる。爆発で中間風コンボ以外を防御可能。矢がCT中でも「投擲＋爆発」で超反応セーブ＆カウンターが可能。味方の浮かせにチャージ矢を合わせればGK位置から直接得点できる。",
-      cons: "予想外の爆発や逆サイドへの崩し、連続攻撃によるCT切れに弱い。矢を外すと一気にピンチになる。投擲のタイミングミスで利敵になりやすい。"
-    },
-    "大剣": {
-      concept: "粘り・高威圧",
-      stats: [3, 5, 5, 2, 5],
-      shortDesc: "地上絶対阻止。3溜めの判定で多少の浮き球も処理し、ゴール前からフルコート貫通砲を放つ。",
-      pros: "対地上戦最強。大抵の行動は3溜め（CT5秒）で阻止可能で、判定の広さにより中程度の浮き球も叩き落とせる。ゴール前で3人に囲まれても「止め＋3溜め＋通常」で全員貫通して敵ゴールを脅かす圧倒的カウンター力を持つ。",
-      cons: "超高空のコンボ、スタミナ切れ、爆発ダッシュ後の隙に脆い。溜め中は動けないため軌道予測が必須。"
-    },
-    "雷": {
-      concept: "初動奪取・高機動カバー",
-      stats: [3, 3, 4, 3, 4],
-      shortDesc: "初動最強。設置クナイによる広域カバーと、ゴールライン上のワープブロックが光る。",
-      pros: "初動最強のGK。クナイを刺しておけばワープ有効時間内なら大半の球に対応でき、至近距離の相手爆発すらゴールライン上のクナイワープで受け止められる。前線参加とゴール復帰を両立しやすい。ゴール前で様々な択を用いてキーパーとタイマンできるテクニカルな役職。",
-      cons: "クナイを外すと防御力が激減する。止めスキルは球を停止させるだけなので通常・爆発・クナイの追撃が必須。逆サイド展開に弱い。"
-    },
-    "風法器": {
-      concept: "爆発カウンター・連携",
-      stats: [4, 4, 2, 4, 4],
-      shortDesc: "連携最強。広範囲の押し出しサポートと、相手の必殺コンボを無に帰す爆発カウンター。",
-      pros: "連携最強のGK。相手のコンボに爆発を合わせればセーブと同時にカウンターへ移行可能。押し出しの範囲が広く、自陣を守りつつ前線を支援できる。",
-      cons: "爆発への依存度が高く、止めCT（10秒）が長いため猛攻に弱い。爆発の有効距離が中間ラインまでのため単体では直接得点しにくい。押し出しのオウンゴールに注意。"
-    }
-  };
-
-  // Updated 剣士 stats in v21: 連携・トス = 5, 制圧・防衛干渉 = 4
-  const VANGUARD_DATA = {
-    "拳": {
-      concept: "インファイト・爆速回転王",
-      stats: [5, 4, 3, 2, 5],
-      mfConcept: "中盤アッパートス・高速中継",
-      mfStats: [4, 4, 4, 3, 5],
-      mfDesc: "【MF時】ダッシュ通常で爆発を回しつつ、中盤からのアッパー＋通常で後方の弓へ絶好のトスを供給。相手の雷爆発をアッパーで押し返す迎撃も可能。",
-      fwConcept: "インファイト・爆速ストライカー",
-      fwStats: [5, 4, 3, 2, 5],
-      fwDesc: "【FW時】ダッシュ➔即通常と通常1.5秒短縮で爆発を最速回転。壁バウンドからの円状爆発や超速ロブで単独突破するエースストライカー。",
-      pros: "風爆発以外で見てから止めるのが困難なコンボ力。「ダッシュ➔即通常」の唯一特性と通常1.5秒短縮の噛み合いで爆発回転が最速。壁バウンドからの円状爆発シュート、中衛アッパーでの弓へのトス供給、相手雷爆発を真っ向から跳ね返すアッパー押し返しなど実戦性能が極めて高い。",
-      cons: "全体的に硬直が長く、アッパー判定が小さめ。爆発が円状判定のため位置取りを誤るとオウンゴールしやすい。"
-    },
-    "剣士": {
-      concept: "対空カウンター・遠距離斬撃",
-      stats: [3, 3, 5, 4, 4],
-      mfConcept: "対空迎撃・遠距離斬撃スイーパー",
-      mfStats: [3, 3, 5, 4, 4],
-      mfDesc: "【MF時】上下左右に広いアッパーで相手の浮かせ技を刈り取り、中間ラインから浮き球に遠距離爆発（斬撃）を合わせて直接ゴールを狙う。",
-      fwConcept: "前線チェイサー・対空フィニッシャー",
-      fwStats: [4, 3, 5, 4, 4],
-      fwDesc: "【FW時】6.5秒のダッシュ切りと広いアッパー判定を活かし、相手GKのクリアボールや味方の浮き球に食らいついてねじ込む前線アタッカー。",
-      pros: "拳・弓・風の浮かせ技を広いアッパー判定で止めてカウンターに持ち込める。中間ラインで様子を伺い、浮いた球に遠距離から爆発（斬撃）を合わせて直接ゴールを奪う決定力も持つ。ダッシュ切り6.5秒化で手数も向上。",
-      cons: "GKとの単純な1vs1は通常攻撃で止められやすい。振りが長く判定理解が必要。ボールが背後に抜けると無力。"
-    },
-    "水法器": {
-      concept: "MF万能司令塔 ⇔ FW最凶の点取り屋",
-      stats: [4, 2, 5, 5, 2],
-      mfConcept: "万能サポート・ピンチ救出司令塔",
-      mfStats: [2, 2, 5, 5, 2],
-      mfDesc: "【MF時：温厚・万能型】引き寄せ（CT8秒）で味方のピンチを救出し、設置でボールを前へ送り、爆発で味方をサポートする攻守の要。",
-      fwConcept: "ゴール前圧殺・最凶オフサイド王",
-      fwStats: [5, 3, 3, 5, 3],
-      fwDesc: "【FW時：凶暴ストライカー】相手GKが止めを撃った隙を突く確定級の引き寄せ、回避を強いる設置罠の圧倒的プレッシャー、初動の乱戦を制する爆発、そして理不尽なオフサイド戦術で無双する。",
-      pros: "ポジションで姿を変える役職。MF時は引き寄せカバーと設置パスで味方を支える万能型。FW時は相手ゴール前に陣取り、GKの止めスキルの隙を突く引き寄せ・設置罠の圧・初動乱戦での爆発・オフサイド戦術など多彩な択で相手を崩壊させる。",
-      cons: "大剣GKにめっぽう弱い。爆発CT（40秒）が重く、外すとチームのピンチに直結する。簡易モードだと爆発が読まれやすく簡単な妨害で止まる上オウンゴールをしやすい。照準モードの難易度が高い。"
-    },
-    "弓": {
-      concept: "超高空レーザー砲・スイッチGK",
-      stats: [3, 2, 5, 5, 3],
-      mfConcept: "全域スナイパー・第2のGK",
-      mfStats: [4, 2, 5, 5, 3],
-      mfDesc: "【MF時】風や拳の浮かせ（トス）に後方からチャージ矢を合わせ、誰も触れられないレーザー弾道で射抜く。GKとのスイッチ守備も完璧。",
-      fwConcept: "中間バウンド爆撃・前線シューター",
-      fwStats: [4, 2, 4, 4, 3],
-      fwDesc: "【FW時】「投擲＋爆発」の王道コンボや壁バウンドシュート、味方の浮かせへの即座の矢合わせで得点を狙うシューター。",
-      pros: "遠隔からのボール干渉とGKスイッチ適性が抜群。風や拳の浮かせにチャージ矢を合わせれば、相手頭上を貫くガード不能級のシュートになる。「投擲＋爆発」の中間壁バウンドや、風・雷・水との爆発連携も一撃必殺の威力。",
-      cons: "背後にボールが行くと脆い。矢を外したり投擲をミスすると利敵になりやすい。単独での打開は厳しい。"
-    },
-    "大剣": {
-      concept: "中衛キャノン・絶対関所",
-      stats: [5, 3, 2, 4, 4],
-      mfConcept: "中盤の絶対関所・長距離キャノン",
-      mfStats: [5, 3, 2, 5, 4],
-      mfDesc: "【MF時】中間ラインに構えて地上パスを遮断する「関所」。止めスキルで確実にトラップし、3溜め＋通常でコート半分を単独でぶち抜く。",
-      fwConcept: "重戦車ストライカー・強引突破",
-      fwStats: [5, 3, 2, 4, 4],
-      fwDesc: "【FW時】圧倒的なタイマン性能と5秒周期の3溜め斬りで、相手ディフェンスを正面から粉砕してゴールへねじ込むパワーアタッカー。",
-      pros: "圧倒的タイマン性能。中衛で「止め」を使って確実にトラップし、「3溜め＋通常」を振り抜けば連携なしでほぼ確実に得点を狙える。構えているだけで相手の進入ルートを塞ぐ関所になる。",
-      cons: "高空のボールや遠いボールに干渉できない。敵が至近距離にいる時の3溜めは通常やスキルで潰されるリスクがある。"
-    },
-    "風法器": {
-      concept: "全域押し出し・超高空トス役",
-      stats: [3, 4, 5, 4, 3],
-      mfConcept: "全域カバー・超高空トス司令塔",
-      mfStats: [3, 4, 5, 4, 3],
-      mfDesc: "【MF時】中間立ちでコート全域を射程に収める。「止め＋通常＋押し出し」の超高空トスと唯一の味方加速バフでチームの得点を演出する。",
-      fwConcept: "前線プレス・セットプレイ起点",
-      fwStats: [3, 4, 5, 4, 3],
-      fwDesc: "【FW時】前線での止め＋押し出しで相手GKにスキルを吐かせ、爆発＋通常＋押し出しの王道コンボでゴールを強襲する。",
-      pros: "中間に立てばほぼコート全域が押し出しの射程内。唯一の味方加速バフ持ち。「止め＋通常＋押し出し」で相手ゴール前へ高い浮き球を送り、弓のチャージ矢の絶好のトスを作るか相手GKにスキルを吐かせられる。",
-      cons: "自分より後ろのボールに無力。止めや押し出しの角度ミスによる利敵・オウンゴールに注意。"
-    },
-    "雷": {
-      concept: "変幻自在の多芸枠・死角ストライカー",
-      stats: [4, 5, 4, 3, 4],
-      mfConcept: "全域遊撃・DFカバー＆連携型",
-      mfStats: [3, 5, 5, 4, 4],
-      mfDesc: "【MF時：サポート・DF・妨害型】裏抜けボールの即時ワープ回収、クナイによる行動制限、味方へ繋ぐパスなど、盤面全体を飛び回る遊撃手。",
-      fwConcept: "死角ワープ・タイマン特化アタッカー",
-      fwStats: [5, 5, 3, 3, 4],
-      fwDesc: "【FW時：メインアタッカー型】シュートに全リソースを注ぎ込む特化型。空中クナイワープ＋通常の死角シュートや多彩な択でGKとのタイマンを制す。",
-      pros: "全武器種で最も型が分かれる武器（サポート型、メインアタッカー型、妨害特化型、GK/DF型、連携型など）。初動の速さ、裏抜け回収、空中クナイワープ＋通常の死角シュート、ゴール前で多彩な択を迫るタイマン力を兼ね備える。",
-      cons: "雷が複数人いるとクナイに色がつかないため敵味方の判別が困難。ワープや爆発が味方の邪魔（利敵）になりやすい。"
-    }
-  };
-
-  // Base 21 Community Members
-  const BASE_MEMBERS = [
-    { name: "鈍茶(どんちゃ)", gk: "GK1", pos: ["MF"], main: "弓", sub: "雷 大剣", checked: false },
-    { name: "ころ", gk: "GK1", pos: ["MF", "FW"], main: "大剣 雷 風", sub: "弓 拳 / 水(MFのみ) 剣", checked: false },
-    { name: "ビス", gk: "GK1", pos: ["MF", "FW"], main: "風 大剣 剣", sub: "弓 雷 水 拳", checked: false },
-    { name: "すい", gk: "GK2", pos: ["MF", "FW"], main: "水 風", sub: "大剣 弓", checked: false },
-    { name: "Splatoonic", gk: "GK2", pos: ["MF"], main: "弓 大剣", sub: "雷 水 剣 拳 風", checked: false },
-    { name: "丘丘人殺手", gk: "GK2", pos: ["MF", "FW"], main: "剣 弓", sub: "雷 水(MFのみ) / 拳", checked: false },
-    { name: "長瀬川優紀", gk: "", pos: ["MF", "FW"], main: "水 雷", sub: "剣 風", checked: false },
-    { name: "いちごみるく", gk: "GK1", pos: ["MF", "FW"], main: "雷 弓 水(MFのみ) 剣", sub: "大剣 拳 風", checked: false },
-    { name: "あーるぐれい", gk: "GK2", pos: ["FW"], main: "水 雷", sub: "弓", checked: false },
-    { name: "ユニ", gk: "", pos: ["MF", "FW"], main: "拳 剣", sub: "弓 / 雷", checked: false },
-    { name: "shell™(饂飩)", gk: "GK1", pos: ["MF"], main: "弓", sub: "風 大剣 剣", checked: false },
-    { name: "壱語兄さん", gk: "GK2", pos: ["MF", "FW"], main: "水 拳 大剣", sub: "雷 風 / 剣 弓", checked: false },
-    { name: "みかげくん", gk: "GK2", pos: ["MF", "FW"], main: "拳 剣", sub: "大剣 弓", checked: false },
-    { name: "リンク", gk: "GK2", pos: ["MF", "FW"], main: "大剣", sub: "風", checked: false },
-    { name: "パイモンの親", gk: "", pos: ["MF", "FW"], main: "拳 雷", sub: "弓", checked: false },
-    { name: "あかり社長", gk: "", pos: ["MF", "FW"], main: "水", sub: "弓 雷", checked: false },
-    { name: "本物D旅人", gk: "", pos: ["MF", "FW"], main: "拳", sub: "弓", checked: false },
-    { name: "えび", gk: "", pos: ["MF", "FW"], main: "雷 風", sub: "（なし）", checked: false },
-    { name: "エース", gk: "", pos: ["MF", "FW"], main: "水", sub: "剣", checked: false },
-    { name: "しろおり", gk: "", pos: ["MF"], main: "水", sub: "（なし）", checked: false },
-    { name: "そま", gk: "", pos: ["MF"], main: "風", sub: "（なし）", checked: false }
-  ];
-
-  let MEMBERS = [...BASE_MEMBERS];
-
-  function loadCustomMembersFromStorage() {
-    try {
-      const saved = localStorage.getItem('kinetic_custom_members_v20');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          parsed.forEach(cm => {
-            if (cm && cm.name && !MEMBERS.some(m => m.name === cm.name)) {
-              MEMBERS.push({
-                name: cm.name,
-                gk: cm.gk || "",
-                pos: Array.isArray(cm.pos) ? cm.pos : ["MF", "FW"],
-                main: cm.main || "自由枠",
-                sub: cm.sub || "（なし）",
-                checked: false,
-                isCustom: true
-              });
-            }
-          });
-        }
-      }
-    } catch (e) {
-      // Safe fallback when third-party iframe blocks localStorage
-    }
-  }
-
-  function saveCustomMembersToStorage() {
-    try {
-      const customs = MEMBERS.filter(m => m.isCustom);
-      localStorage.setItem('kinetic_custom_members_v20', JSON.stringify(customs));
-    } catch (e) {
-      // Safe fallback
-    }
-  }
-
-  function normalizeRoleInput(str) {
-    if (!str) return "";
-    return str
-      .replace(/水法器/g, "水")
-      .replace(/風法器/g, "風")
-      .replace(/剣士/g, "剣")
-      .replace(/片手剣/g, "剣")
-      .replace(/、/g, " ")
-      .replace(/,/g, " ")
-      .trim();
-  }
-
-  function addNewCustomMember() {
-    const nameInput = document.getElementById('new-m-name');
-    const gkSelect = document.getElementById('new-m-gk');
-    const posSelect = document.getElementById('new-m-pos');
-    const mainInput = document.getElementById('new-m-main');
-    const subInput = document.getElementById('new-m-sub');
-
-    const name = nameInput.value.trim();
-    if (!name) {
-      showToast("⚠️ メンバーの名前を入力してください。", "warn");
-      return;
-    }
-    if (MEMBERS.some(m => m.name === name)) {
-      showToast("⚠️ 同じ名前のメンバーが既に登録されています。", "warn");
-      return;
-    }
-
-    const gk = gkSelect.value;
-    const pos = posSelect.value.split(',');
-    const main = normalizeRoleInput(mainInput.value) || "自由枠";
-    const sub = normalizeRoleInput(subInput.value) || "（なし）";
-
-    MEMBERS.push({
-      name,
-      gk,
-      pos,
-      main,
-      sub,
-      checked: true,
-      isCustom: true
-    });
-
-    saveCustomMembersToStorage();
-
-    nameInput.value = "";
-    mainInput.value = "";
-    subInput.value = "";
-
-    renderMembers();
-    showToast(`✅ 「${name}」をリストに追加しました！`, "success");
-  }
-
-  function deleteCustomMember(name, event) {
-    if (event) event.stopPropagation();
-    MEMBERS = MEMBERS.filter(m => m.name !== name);
-    delete memberTeams[name];
-    delete currentChaosAssignments[name];
-    delete memberLiveState[name];
-    customEnemyNames = customEnemyNames.filter(n => n !== name);
-    saveCustomMembersToStorage();
-    renderMembers();
-    showToast(`🗑️ 「${name}」を削除しました。`, "info");
-  }
-
-  // --- TEAM SHARE & SYNC FOR DISCORD / IFRAME (v21) ---
-  function copyTeamShareText() {
-    const reds = MEMBERS.filter(m => memberTeams[m.name] === 'red');
-    const blues = MEMBERS.filter(m => memberTeams[m.name] === 'blue');
-
-    if (reds.length === 0 && blues.length === 0) {
-      showToast("⚠️ まだチーム分けが行われていません。", "warn");
-      return;
-    }
-
-    const formatMemberLine = (m) => {
-      if (currentChaosAssignments[m.name]) {
-        return `${m.name}[${currentChaosAssignments[m.name]}]`;
-      }
-      return m.name;
-    };
-
-    const redLine = reds.map(formatMemberLine).join(' / ');
-    const blueLine = blues.map(formatMemberLine).join(' / ');
-    const shareText = `🔴赤: ${redLine}\n🔵青: ${blueLine}`;
-
-    const copyFallback = (text) => {
-      const wrap = document.getElementById('share-textarea-wrap');
-      const ta = document.getElementById('share-textarea');
-      wrap.classList.add('active');
-      ta.value = text;
-      ta.select();
-      try {
-        document.execCommand('copy');
-        showToast("📋 チーム分け結果をコピーしました！Discord等に貼り付けられます。", "success");
-      } catch (err) {
-        showToast("📋 下のテキストボックスからコピーしてください。", "info");
-      }
-    };
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(shareText).then(() => {
-        showToast("📋 チーム分け結果をクリップボードにコピーしました！", "success");
-      }).catch(() => {
-        copyFallback(shareText);
-      });
-    } else {
-      copyFallback(shareText);
-    }
-  }
-
-  function toggleImportShareBox(force) {
-    const wrap = document.getElementById('share-textarea-wrap');
-    if (typeof force === 'boolean') {
-      wrap.classList.toggle('active', force);
-    } else {
-      wrap.classList.toggle('active');
-    }
-  }
-
-  function applySharedTeamText() {
-    const ta = document.getElementById('share-textarea');
-    const raw = (ta.value || '').trim();
-    if (!raw) {
-      showToast("⚠️ 共有テキストを貼り付けてください。", "warn");
-      return;
-    }
-
-    memberTeams = {};
-    currentChaosAssignments = {};
-    memberLiveState = {};
-
-    const lines = raw.split(/\r?\n/);
-    let importedCount = 0;
-
-    lines.forEach(line => {
-      let team = null;
-      if (line.includes('赤') || line.toLowerCase().includes('red')) team = 'red';
-      else if (line.includes('青') || line.toLowerCase().includes('blue')) team = 'blue';
-      if (!team) return;
-
-      const content = line.replace(/^.*?[:：]/, '').trim();
-      const tokens = content.split(/\s*\/\s*|\s*、\s*|\s*,\s*/).map(s => s.trim()).filter(Boolean);
-
-      tokens.forEach(token => {
-        const match = token.match(/^(.+?)(?:\[(.+?)\])?$/);
-        if (!match) return;
-        const mName = match[1].trim();
-        const chaosStr = match[2] ? match[2].trim() : null;
-
-        if (!MEMBERS.some(m => m.name === mName)) {
-          MEMBERS.push({
-            name: mName,
-            gk: "",
-            pos: ["MF", "FW"],
-            main: "自由枠",
-            sub: "（なし）",
-            checked: true,
-            isCustom: true
-          });
-        }
-
-        const memberObj = MEMBERS.find(m => m.name === mName);
-        if (memberObj) memberObj.checked = true;
-        memberTeams[mName] = team;
-        if (chaosStr) currentChaosAssignments[mName] = chaosStr;
-        importedCount++;
-      });
-    });
-
-    if (importedCount === 0) {
-      showToast("⚠️ チーム情報を読み取れませんでした。「🔴赤: 名前 / 名前」の形式で貼り付けてください。", "warn");
-      return;
-    }
-
-    renderMembers();
-    toggleImportShareBox(false);
-    showToast(`✅ ${importedCount}名のチーム分け結果を同期しました！`, "success");
-  }
-
-  // --- MODAL & INTERACTIVE ENEMY MEMBER + ROLE PICKER ---
-  let modalEnemySource = 'red';
-  let customEnemyNames = [];
-  let memberLiveState = {};
-
-  let pickedEnemyGK = null;
-  let pickedEnemyFields = [];
-
-  function parseRoleTokens(str) {
-    if (!str || str === "自由枠" || str === "（なし）") return [];
-    const cleaned = normalizeRoleInput(str).replace(/\(MFのみ\)/g, '').replace(/\//g, ' ');
-    return cleaned.split(/\s+/).map(s => s.trim()).filter(s => SHORT_ROLES.includes(s));
-  }
-
-  function getMemberRoleCategories(member) {
-    if (member.main === "自由枠") {
-      return { mains: [...SHORT_ROLES], subs: [], others: [] };
-    }
-    const mains = parseRoleTokens(member.main);
-    const subs = parseRoleTokens(member.sub).filter(r => !mains.includes(r));
-    const others = SHORT_ROLES.filter(r => !mains.includes(r) && !subs.includes(r));
-    return { mains, subs, others };
-  }
-
-  function suggestPositionForMemberRole(member, shortRole) {
-    const name = member.name;
-
-    if (name === "いちごみるく") {
-      if (shortRole === "弓") return "GK";
-      if (shortRole === "雷") return "FW";
-      if (shortRole === "水") return "MF";
-    }
-    if (name === "鈍茶(どんちゃ)" || name === "shell™(饂飩)") {
-      if (shortRole === "弓") return "GK";
-      return "MF";
-    }
-    if (name === "あーるぐれい") {
-      if (shortRole === "弓") return "GK";
-      return "FW";
-    }
-    if (name === "丘丘人殺手") {
-      if (shortRole === "弓") return "GK";
-      if (shortRole === "水") return "MF";
-    }
-    if (name === "ころ") {
-      if (shortRole === "水") return "MF";
-    }
-    if (name === "壱語兄さん") {
-      if (shortRole === "風") return "GK";
-      if (shortRole === "水" || shortRole === "剣" || shortRole === "雷") return "FW";
-    }
-    if (name === "みかげくん") {
-      if (shortRole === "弓") return "GK";
-      return "FW";
-    }
-    if (name === "Splatoonic") {
-      if (shortRole === "弓") return "GK";
-      return "MF";
-    }
-    if (name === "長瀬川優紀") {
-      if (shortRole === "水") return "FW";
-      if (shortRole === "雷" || shortRole === "風") return "FW";
-      if (shortRole === "剣") return "MF";
-    }
-    if (name === "すい") {
-      if (shortRole === "水") return "FW";
-    }
-    if (name === "エース") {
-      if (shortRole === "水") return "FW";
-      if (shortRole === "剣") return "MF";
-    }
-    if (name === "えび") {
-      if (shortRole === "雷") return "FW";
-      if (shortRole === "風") return "MF";
-    }
-    if (FIST_MASTERS.includes(name) && shortRole === "拳") {
-      return "FW";
-    }
-
-    if (shortRole === "水") {
-      if (HYDRO_MF_ONLY.includes(name)) return "MF";
-      if (HYDRO_FW_MASTERS.includes(name)) return "FW";
-      return member.pos.includes("MF") ? "MF" : "FW";
-    }
-    if (!GK_CAPABLE_SHORT.includes(shortRole)) {
-      if (member.pos.length === 1) return member.pos[0];
-      return (shortRole === "拳" || shortRole === "剣") ? "FW" : "MF";
-    }
-
-    const activeMembers = getActiveModalEnemyMembers();
-    const otherHasGK = activeMembers.some(m => m.name !== name && memberLiveState[m.name] && memberLiveState[m.name].pos === "GK" && memberLiveState[m.name].role);
-    if (!otherHasGK && (member.gk === "GK1" || member.gk === "GK2") && GK_CAPABLE_SHORT.includes(shortRole)) {
-      if (member.gk === "GK1") return "GK";
-    }
-
-    if (member.pos.length === 1) return member.pos[0];
-    if (shortRole === "風") return "MF";
-    return "FW";
-  }
-
-  function openAlertModal() {
-    const reds = MEMBERS.filter(m => memberTeams[m.name] === 'red');
-    const blues = MEMBERS.filter(m => memberTeams[m.name] === 'blue');
-
-    if (modalEnemySource === 'red' && reds.length === 0) {
-      if (blues.length > 0) modalEnemySource = 'blue';
-      else modalEnemySource = 'custom';
-    } else if (modalEnemySource === 'blue' && blues.length === 0) {
-      if (reds.length > 0) modalEnemySource = 'red';
-      else modalEnemySource = 'custom';
-    }
-
-    document.getElementById('alert-modal').classList.add('active');
-    updateModalSourceUI();
-  }
-
-  function closeAlertModal(e) {
-    document.getElementById('alert-modal').classList.remove('active');
-  }
-
-  function setModalEnemySource(src) {
-    modalEnemySource = src;
-    updateModalSourceUI();
-  }
-
-  function getActiveModalEnemyMembers() {
-    if (modalEnemySource === 'red') {
-      return MEMBERS.filter(m => memberTeams[m.name] === 'red');
-    } else if (modalEnemySource === 'blue') {
-      return MEMBERS.filter(m => memberTeams[m.name] === 'blue');
-    } else if (modalEnemySource === 'custom') {
-      return customEnemyNames.map(name => MEMBERS.find(m => m.name === name)).filter(Boolean);
-    }
-    return [];
-  }
-
-  function updateModalSourceUI() {
-    const reds = MEMBERS.filter(m => memberTeams[m.name] === 'red');
-    const blues = MEMBERS.filter(m => memberTeams[m.name] === 'blue');
-
-    document.getElementById('src-btn-red').textContent = `🔴 赤チームを相手にする (${reds.length}名)`;
-    document.getElementById('src-btn-blue').textContent = `🔵 青チームを相手にする (${blues.length}名)`;
-
-    document.getElementById('src-btn-red').classList.toggle('active', modalEnemySource === 'red');
-    document.getElementById('src-btn-blue').classList.toggle('active', modalEnemySource === 'blue');
-    document.getElementById('src-btn-custom').classList.toggle('active', modalEnemySource === 'custom');
-    document.getElementById('src-btn-manual').classList.toggle('active', modalEnemySource === 'manual');
-
-    const memberArea = document.getElementById('modal-member-mode-area');
-    const manualArea = document.getElementById('modal-manual-mode-area');
-    const customBox = document.getElementById('custom-member-picker-box');
-
-    if (modalEnemySource === 'manual') {
-      memberArea.style.display = 'none';
-      manualArea.style.display = 'block';
-      renderLiveFilteredAlerts();
-      return;
-    }
-
-    memberArea.style.display = 'block';
-    manualArea.style.display = 'none';
-
-    const activeMembers = getActiveModalEnemyMembers();
-    if (modalEnemySource === 'custom' || activeMembers.length === 0) {
-      customBox.style.display = 'block';
-      renderCustomMemberPills();
-    } else {
-      customBox.style.display = 'none';
-    }
-
-    activeMembers.forEach(m => {
-      if (!memberLiveState[m.name]) {
-        if (currentChaosAssignments[m.name]) {
-          const parts = currentChaosAssignments[m.name].split(": ");
-          const cPos = parts[0] || "FW";
-          const cRole = (parts[1] || "").replace("法器", "").replace("剣士", "剣");
-          memberLiveState[m.name] = { pos: cPos, role: cRole || null };
-        } else {
-          const defaultPos = m.gk === "GK1" ? "GK" : (m.pos[0] || "FW");
-          memberLiveState[m.name] = { pos: defaultPos, role: null };
-        }
-      }
-    });
-
-    renderModalEnemyMemberCards();
-    renderLiveFilteredAlerts();
-  }
-
-  function renderCustomMemberPills() {
-    const container = document.getElementById('custom-member-pills');
-    container.innerHTML = MEMBERS.map(m => {
-      const isSelected = customEnemyNames.includes(m.name);
-      return `<button class="quick-member-pill ${isSelected ? 'active' : ''}" onclick="toggleCustomEnemyMember('${m.name}')">${m.name}</button>`;
-    }).join('');
-  }
-
-  function toggleCustomEnemyMember(name) {
-    if (modalEnemySource !== 'custom') {
-      modalEnemySource = 'custom';
-    }
-    if (customEnemyNames.includes(name)) {
-      customEnemyNames = customEnemyNames.filter(n => n !== name);
-    } else {
-      customEnemyNames.push(name);
-    }
-    updateModalSourceUI();
-  }
-
-  function clearCustomEnemyMembers() {
-    customEnemyNames = [];
-    updateModalSourceUI();
-  }
-
-  function clearMemberSelections() {
-    const activeMembers = getActiveModalEnemyMembers();
-    activeMembers.forEach(m => {
-      const defaultPos = m.gk === "GK1" ? "GK" : (m.pos[0] || "FW");
-      memberLiveState[m.name] = { pos: defaultPos, role: null };
-    });
-    renderModalEnemyMemberCards();
-    renderLiveFilteredAlerts();
-  }
-
-  function tapMemberPos(memberName, pos) {
-    if (!memberLiveState[memberName]) {
-      memberLiveState[memberName] = { pos: pos, role: null };
-    } else {
-      memberLiveState[memberName].pos = pos;
-    }
-    renderModalEnemyMemberCards();
-    renderLiveFilteredAlerts();
-  }
-
-  function tapMemberRole(memberName, shortRole) {
-    const member = MEMBERS.find(m => m.name === memberName);
-    if (!member) return;
-
-    if (!memberLiveState[memberName]) {
-      memberLiveState[memberName] = { pos: "FW", role: null };
-    }
-
-    if (memberLiveState[memberName].role === shortRole) {
-      memberLiveState[memberName].role = null;
-    } else {
-      memberLiveState[memberName].role = shortRole;
-      const suggestedPos = suggestPositionForMemberRole(member, shortRole);
-      memberLiveState[memberName].pos = suggestedPos;
-    }
-
-    renderModalEnemyMemberCards();
-    renderLiveFilteredAlerts();
-  }
-
-  function renderModalEnemyMemberCards() {
-    const container = document.getElementById('modal-enemy-member-cards');
-    const activeMembers = getActiveModalEnemyMembers();
-
-    if (activeMembers.length === 0) {
-      container.innerHTML = `
-        <div style="grid-column: 1 / -1; padding: 14px; text-align: center; color: var(--text-sub); font-size: 0.84rem; background: #0f172a; border-radius: 10px; border: 1px solid var(--border);">
-          まだこのチームにメンバーが割り振られていません。上の「👥 相手チームのメンバーをタップして追加」から相手メンバーをクリックするか、タブ④でチーム分けを行ってください。
-        </div>
-      `;
-      return;
-    }
-
-    container.innerHTML = activeMembers.map(m => {
-      const st = memberLiveState[m.name] || { pos: "FW", role: null };
-      const { mains, subs, others } = getMemberRoleCategories(m);
-
-      let gkBadge = '';
-      if (m.gk === 'GK1') gkBadge = `<span class="combo-badge badge-gk1">GK1</span>`;
-      else if (m.gk === 'GK2') gkBadge = `<span class="combo-badge badge-gk2">GK2</span>`;
-
-      const posAptStr = m.pos.join('/');
-      const hasRole = Boolean(st.role);
-      const cardClass = hasRole ? (st.pos === 'GK' ? 'active-gk' : 'active-selection') : '';
-
-      let statusText = '未選択（役職をタップ）';
-      let statusClass = '';
-      if (hasRole) {
-        statusText = `${st.pos}：${st.role}`;
-        if (st.pos === 'GK') statusClass = 'set-gk';
-        else if (st.pos === 'FW') statusClass = 'set-fw';
-        else statusClass = 'set';
-      }
-
-      const renderRoleBtn = (r, tierClass, prefix) => {
-        const isActive = st.role === r;
-        let label = `${prefix}${r}`;
-        if (r === "水" && HYDRO_MF_ONLY.includes(m.name)) {
-          label = `${prefix}水(MF)`;
-        }
-        return `<button class="role-tap-btn ${tierClass} ${isActive ? 'active' : ''}" onclick="tapMemberRole('${m.name}', '${r}')">${label}</button>`;
-      };
-
-      const mainBtns = mains.map(r => renderRoleBtn(r, 'is-main', '★')).join('');
-      const subBtns = subs.map(r => renderRoleBtn(r, 'is-sub', '')).join('');
-      const otherBtns = others.map(r => renderRoleBtn(r, 'is-other', '')).join('');
-
-      return `
-        <div class="enemy-member-card ${cardClass}">
-          <div class="enemy-member-top">
-            <div class="enemy-member-name">
-              <span>${m.name}</span>
-              ${gkBadge}
-              <span class="combo-badge badge-pos" style="font-size:0.68rem;">適性:${posAptStr}</span>
-            </div>
-            <span class="enemy-member-status ${statusClass}">${statusText}</span>
-          </div>
-
-          <div class="tap-row">
-            <span class="tap-row-label">ポジ：</span>
-            <button class="pos-tap-btn pos-gk ${st.pos === 'GK' ? 'active' : ''}" onclick="tapMemberPos('${m.name}', 'GK')">🛡️ GK</button>
-            <button class="pos-tap-btn pos-mf ${st.pos === 'MF' ? 'active' : ''}" onclick="tapMemberPos('${m.name}', 'MF')">⚡ MF</button>
-            <button class="pos-tap-btn pos-fw ${st.pos === 'FW' ? 'active' : ''}" onclick="tapMemberPos('${m.name}', 'FW')">🔥 FW</button>
-          </div>
-
-          <div class="tap-row">
-            <span class="tap-row-label">役職：</span>
-            ${mainBtns}
-            ${subBtns}
-            ${otherBtns}
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  // --- MANUAL MODE HANDLERS ---
-  function selectEnemyGK(gkRole) {
-    if (pickedEnemyGK === gkRole) {
-      pickedEnemyGK = null;
-    } else {
-      pickedEnemyGK = gkRole;
-    }
-    document.querySelectorAll('#enemy-gk-picker .enemy-pick-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.getAttribute('data-gk') === pickedEnemyGK);
-    });
-    renderLiveFilteredAlerts();
-  }
-
-  function toggleEnemyField(roleKey) {
-    if (pickedEnemyFields.includes(roleKey)) {
-      pickedEnemyFields = pickedEnemyFields.filter(r => r !== roleKey);
-    } else {
-      pickedEnemyFields.push(roleKey);
-    }
-    document.querySelectorAll('#enemy-field-picker .enemy-pick-btn').forEach(btn => {
-      btn.classList.toggle('active', pickedEnemyFields.includes(btn.getAttribute('data-role')));
-    });
-    renderLiveFilteredAlerts();
-  }
-
-  function clearEnemyPicks() {
-    pickedEnemyGK = null;
-    pickedEnemyFields = [];
-    document.querySelectorAll('.enemy-pick-btn').forEach(btn => btn.classList.remove('active'));
-    renderLiveFilteredAlerts();
-  }
-
-  // --- UNIFIED LIVE ALERT GENERATOR ---
-  function renderLiveFilteredAlerts() {
-    const container = document.getElementById('live-filtered-alerts');
-    const items = [];
-
-    let gkRole = null;
-    let gkNames = [];
-    let fieldEntries = [];
-    let hasF = (key) => false;
-    let hasAnyHydro = false;
-
-    if (modalEnemySource === 'manual') {
-      gkRole = pickedEnemyGK;
-      hasF = (r) => pickedEnemyFields.includes(r);
-      hasAnyHydro = hasF('水FW') || hasF('水MF');
-    } else {
-      const activeMembers = getActiveModalEnemyMembers();
-      const selectedEntries = activeMembers
-        .map(m => ({ name: m.name, ...(memberLiveState[m.name] || { pos: 'FW', role: null }) }))
-        .filter(e => Boolean(e.role));
-
-      if (selectedEntries.length === 0) {
-        container.innerHTML = `<div style="font-size:0.84rem; color:var(--text-sub);">上のカードから相手メンバーが使っている役職をタップすると、メンバー特性と編成シナジーを踏まえた具体的な対策が表示されます。</div>`;
-        return;
-      }
-
-      const gkEntries = selectedEntries.filter(e => e.pos === 'GK');
-      if (gkEntries.length > 0) {
-        const firstGK = gkEntries[0].role;
-        gkRole = firstGK === '風' ? '風法器' : firstGK;
-        gkNames = gkEntries.map(e => `${e.name}(${e.role})`);
-      }
-
-      fieldEntries = selectedEntries.filter(e => e.pos !== 'GK');
-      const electroTotalCount = selectedEntries.filter(e => e.role === '雷').length;
-
-      hasF = (key) => {
-        if (key === '水FW') return fieldEntries.some(e => e.role === '水' && e.pos === 'FW');
-        if (key === '水MF') return fieldEntries.some(e => e.role === '水' && e.pos === 'MF');
-        if (key === '風法器') return fieldEntries.some(e => e.role === '風');
-        if (key === '剣士') return fieldEntries.some(e => e.role === '剣');
-        if (key === 'ダブル雷') return electroTotalCount >= 2;
-        return fieldEntries.some(e => e.role === key);
-      };
-      hasAnyHydro = hasF('水FW') || hasF('水MF');
-    }
-
-    const getHoldersText = (shortR, filterPos = null) => {
-      if (modalEnemySource === 'manual') return '';
-      const matched = fieldEntries.filter(e => e.role === shortR && (!filterPos || e.pos === filterPos));
-      if (matched.length === 0) return '';
-      return `（担当：${matched.map(m => `${m.name}[${m.pos}]`).join('・')}）`;
-    };
-
-    // 1. Personal Meta High-Priority Alerts
-    if (modalEnemySource !== 'manual') {
-      const activeHydroFWPeople = fieldEntries.filter(e => e.role === '水' && e.pos === 'FW' && HYDRO_FW_MASTERS.includes(e.name));
-      if (activeHydroFWPeople.length > 0) {
-        const names = activeHydroFWPeople.map(e => e.name).join('・');
-        items.push({
-          type: 'warn',
-          title: `🚨【最重要個人メタ：${names} の水FW（オフサイド・前線圧殺）】`,
-          text: `${names} がFW水法器で出ています！ゴール前への常駐（オフサイド戦術）や、GKが止めスキルを吐いた隙への確定引き寄せ・設置罠を徹底警戒してください。\n・大剣の3溜め斬り（CT5秒）なら浮かせのない水単体コンボを正面から完封可能。\n・弓なら引き寄せ範囲外から射抜くか、引き寄せの浮きを逆利用して「投擲＋爆発」で超威力カウンターを叩き込めます。\n・相手は自陣守備が2vs3の手薄になるため、中盤でパスコースを潰してカウンターを通しましょう！`
-        });
-      }
-
-      const activeFistMasters = fieldEntries.filter(e => e.role === '拳' && FIST_MASTERS.includes(e.name));
-      if (activeFistMasters.length > 0) {
-        const names = activeFistMasters.map(e => `${e.name}[${e.pos}]`).join('・');
-        items.push({
-          type: 'special',
-          title: `🥊【個人メタ警戒：${names} の主力インファイト（拳）】`,
-          text: `コミュニティ屈指の拳使いである ${names} が拳を握っています！「ダッシュ➔即通常」の爆速CT回転からの円状爆発や壁バウンド強襲、さらにこちらの雷爆発を正面からアッパーで跳ね返す迎撃に要注意。不用意な地上インファイトは避け、空中トスや遠距離から崩しましょう。`
-        });
-      }
-    }
-
-    // 2. Combo Synergies
-    if (hasF('風法器') && (hasF('弓') || gkRole === '弓')) {
-      items.push({
-        type: 'warn',
-        title: `🚨【最優先連携警戒：風 ＋ 弓】超高空レーザー＆爆発重ね ${getHoldersText('風')}`,
-        text: '風の中間トス（止め＋通常＋押し出し）に後方から弓のチャージ矢を合わせるガード不能レーザーと「風爆発＋弓爆発」が来ます！前衛が風に密着プレスをかけて自由にトスを上げさせないこと！'
-      });
-    }
-    if (hasAnyHydro && (hasF('弓') || gkRole === '弓')) {
-      items.push({
-        type: 'warn',
-        title: '🚨【必殺連携警戒：水 ＋ 弓】引き寄せ浮かせ ＋ 弓高速爆発',
-        text: '水の「引き寄せ＋設置」の浮きに弓の爆発を重ねる確定ゴール連携があります。水が構えたら遠くから妨害するか、引き寄せ範囲外へすぐクリアしてください！'
-      });
-    }
-    if (hasF('拳') && (hasF('弓') || gkRole === '弓')) {
-      items.push({
-        type: 'combo',
-        title: '⚠️【高速連携警戒：拳 ＋ 弓】中盤アッパートス ➔ チャージ矢',
-        text: '拳が中盤で「アッパー＋通常」で打ち上げた球を、構えていた弓が即座に射抜く高速レーザー連携があります。弓がチャージを始めたら拳の浮かせを警戒！'
-      });
-    }
-
-    // 3. Enemy GK Counter Advice
-    const gkNameLabel = gkNames.length > 0 ? `（担当：${gkNames.join('・')}）` : '';
-    if (gkRole === '大剣') {
-      items.push({
-        type: 'good',
-        title: `🛡️【相手GK：大剣の崩し方】地上戦は無敵！頭上とスタミナを狙え ${gkNameLabel}`,
-        text: '地上シュートや水単体コンボは3溜め（CT5秒）で全て止められます。風や拳の強い浮かせコンボで頭上を抜くか、左右に揺さぶってスタミナと爆発後の隙を突きましょう。ゴール前正面からの3人貫通カウンター砲に注意！'
-      });
-    } else if (gkRole === '弓') {
-      const isBowMasterGK = gkNames.some(n => BOW_GK_MASTERS.some(bm => n.includes(bm)));
-      const bowExtra = isBowMasterGK ? '（※熟練の弓GK警戒対象メンバーです！対空狙撃と投擲＋爆発の精度が極めて高いため浮き球厳禁）' : '';
-      items.push({
-        type: 'good',
-        title: `🛡️【相手GK：弓の崩し方】迂闊な浮き球は厳禁！地上と近距離で崩せ ${gkNameLabel}`,
-        text: `ボールを浮かせるとチャージ矢で撃ち落とされ疑似4vs3を作られます${bowExtra}。地上コンボで完結させるか、拳・剣・水の近距離戦や逆サイド展開で矢のCT（11秒）を突きましょう。「投擲＋爆発」の超反応カウンターに警戒！`
-      });
-    } else if (gkRole === '雷') {
-      items.push({
-        type: 'good',
-        title: `🛡️【相手GK：雷の崩し方】設置クナイの逆サイドを突け ${gkNameLabel}`,
-        text: 'クナイ有効時間内は至近距離爆発すらライン上のワープで止められます。クナイが刺さっている場所から遠い逆サイドへ展開するか、クナイCT（11秒）の隙間に攻め込みましょう。初動の飛び出しにも注意！'
-      });
-    } else if (gkRole === '風法器') {
-      items.push({
-        type: 'good',
-        title: `🛡️【相手GK：風法器の崩し方】爆発カウンターと止め(CT10s)を誘発せよ ${gkNameLabel}`,
-        text: 'こちらの必殺コンボに爆発カウンターを合わせてきます。まずは軽いシュートや揺さぶりで「止め（CT10秒）」や爆発を吐かせ、CT中に連続攻撃を叩き込みましょう。'
-      });
-    }
-
-    // 4. Enemy Field Role Alerts
-    if (hasF('水FW')) {
-      items.push({
-        type: 'warn',
-        title: `🌊【対 水(FW/前残り)】オフサイド戦術＆ゴール前設置の圧殺に警戒！ ${getHoldersText('水', 'FW')}`,
-        text: '① GKは不用意に止めスキルを吐くと直後の引き寄せが確定します。スキルはギリギリまで温存し、設置罠の軌道から外れて対応を！\n② 大剣の溜め斬り、雷のクナイワープ、拳のアッパー浮かせで引き寄せを無力化できます。弓なら引き寄せの浮きに「投擲＋爆発」で超威力カウンターが可能！\n③ 相手は水が前に残る分「自陣守備が2vs3の人数不利」になっています。前線の水にパスが通る前に中盤で潰し切るのが最大の対策です！'
-      });
-    }
-    if (hasF('水MF')) {
-      items.push({
-        type: 'special',
-        title: `💧【対 水(MF)】引き寄せカバーと設置パスの中継に注意 ${getHoldersText('水', 'MF')}`,
-        text: '自陣のピンチを引き寄せ（CT8秒）で助けたり、設置で前線にパスを供給してきます。MF水の爆発（CT40秒）は味方へのサポートとして使われるため、水の位置を把握してパスコースを切りましょう。'
-      });
-    }
-    if (hasF('ダブル雷')) {
-      items.push({
-        type: 'warn',
-        title: `⚡⚡【対 ダブル雷】クナイ識別不可＆2段ワープリレー奇襲に警戒！ ${getHoldersText('雷')}`,
-        text: 'クナイに色がつかないため敵味方の判別が困難です。空中に浮いたクナイには絶対に近づかず、敵陣クリアからの「味方雷ワープ追撃（2段リレー）」による一瞬の失点を常にケアしてください。'
-      });
-    } else if (hasF('雷')) {
-      const mfElectro = fieldEntries.filter(e => e.role === '雷' && e.pos === 'MF');
-      const fwElectro = fieldEntries.filter(e => e.role === '雷' && e.pos === 'FW');
-      let posNote = '';
-      if (mfElectro.length > 0 && fwElectro.length === 0) {
-        posNote = '（※MF配置のため裏抜け回収やパスカット・連携サポート型の動きにも注意）';
-      } else if (fwElectro.length > 0) {
-        posNote = '（※FW配置のためゴール前での空中クナイワープ死角シュートやタイマン特化の択に要注意）';
-      }
-      items.push({
-        type: 'special',
-        title: `⚡【対 雷】空中クナイワープの死角シュートと裏抜け回収に注意 ${getHoldersText('雷')}`,
-        text: `「クナイ＋ワープ＋通常」の死角シュートや多彩な択を迫ってきます${posNote}。クナイが刺さった位置を常に見極め、GKはボールの正面ではなく斜め前の軌道に入って偏差セーブを意識しましょう。`
-      });
-    }
-    if (hasF('拳')) {
-      items.push({
-        type: 'special',
-        title: `🥊【対 拳】最速爆発回転＆壁バウンドシュート・アッパー迎撃に注意 ${getHoldersText('拳')}`,
-        text: '「ダッシュ➔即通常」で爆発（CT30秒）を高回転で回してきます。壁バウンドからの円状爆発シュートや、こちらの雷爆発などを正面から跳ね返すアッパー防衛に注意し、インファイトに付き合わず遠距離や空中から崩しましょう。'
-      });
-    }
-    if (hasF('弓')) {
-      items.push({
-        type: 'combo',
-        title: `🏹【対 フィールド弓】中間壁バウンド爆撃と遠隔レーザーに注意 ${getHoldersText('弓')}`,
-        text: '「投擲＋爆発」の王道コンボや、浮き球へのチャージ矢狙撃が強力です。弓の背後にボールを送ると脆いため、弓の頭上や裏へ深くクリアして前線から下げさせましょう。'
-      });
-    }
-    if (hasF('風法器')) {
-      items.push({
-        type: 'combo',
-        title: `🌪️【対 フィールド風法器】全域押し出し＆加速バフの起点 ${getHoldersText('風')}`,
-        text: '中間ラインに立つだけでコート全域のボールに干渉し、「止め＋通常＋押し出し」でゴール前に高空トスを上げてきます。風に余裕を与えないよう前衛がプレッシャーをかけ続けましょう。'
-      });
-    }
-    if (hasF('大剣')) {
-      items.push({
-        type: 'special',
-        title: `⚔️【対 フィールド大剣】中盤の絶対関所＆フルコート貫通キャノン ${getHoldersText('大剣')}`,
-        text: '中間ラインで地上パスを遮断し、「止め➔3溜め＋通常」で単独ゴールを狙ってきます。大剣の正面に地上ボールを通さず、高い浮き球か逆サイドを使って関所を回避しましょう。'
-      });
-    }
-    if (hasF('剣士')) {
-      items.push({
-        type: 'combo',
-        title: `🗡️【対 剣士】広いアッパーの対空迎撃＆遠距離斬撃フィニッシュ ${getHoldersText('剣')}`,
-        text: '拳・弓・風の浮かせ技を広いアッパー判定で刈り取ってカウンターしてきます。中間ラインから浮き球に遠距離爆発（斬撃）を合わせるシュートもあるため、安易なロブパスに注意！'
-      });
-    }
-
-    if (items.length === 0) {
-      container.innerHTML = `<div style="font-size:0.84rem; color:var(--text-sub);">上のボタンから相手が使っている役職をクリックすると、ここに具体的な対策が表示されます。</div>`;
-      return;
-    }
-
-    container.innerHTML = items.map(item => `
-      <div class="synergy-item ${item.type === 'combo' ? 'combo' : (item.type === 'special' ? 'special' : (item.type === 'warn' ? 'warn' : ''))}" style="white-space: pre-line;">
-        <strong>${item.title}</strong>
-        <span>${item.text}</span>
-      </div>
-    `).join('');
-  }
-
-  // --- TAB SWITCHING ---
-  function switchTab(tabId, btn) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    btn.classList.add('active');
-    if (tabId === 'tab-roles') {
-      drawRadar();
-    }
-  }
-
-  // --- TAB 2: PARTY SIMULATOR LOGIC ---
-  let currentMatchFormat = '4v4';
-
-  const PRESETS_4V4 = [
-    { key: "royal", label: "① 王道バランス (1MF/2FW) GK大剣/風/拳/弓", gk: "大剣", f1: {r:"風法器", p:"MF"}, f2: {r:"拳", p:"FW"}, f3: {r:"弓", p:"FW"} },
-    { key: "toss", label: "② トス＆レーザー (1MF/2FW) GK弓/風/拳/大剣", gk: "弓", f1: {r:"風法器", p:"MF"}, f2: {r:"拳", p:"FW"}, f3: {r:"大剣", p:"FW"} },
-    { key: "hydro_fw", label: "③ 水前線圧殺 (1MF/2FW) GK大剣/風/水/拳", gk: "大剣", f1: {r:"風法器", p:"MF"}, f2: {r:"水法器", p:"FW"}, f3: {r:"拳", p:"FW"} },
-    { key: "hydro_mf", label: "④ 水盤面支配 (1MF/2FW) GK弓/水/大剣/雷", gk: "弓", f1: {r:"水法器", p:"MF"}, f2: {r:"大剣", p:"FW"}, f3: {r:"雷", p:"FW"} },
-    { key: "double_electro", label: "⑤ 雷2段ワープ (1MF/2FW) GK弓/雷/雷/大剣", gk: "弓", f1: {r:"雷", p:"MF"}, f2: {r:"雷", p:"FW"}, f3: {r:"大剣", p:"FW"} },
-    { key: "double_mf", label: "⑥ ダブルMF盤面制圧 (2MF/1FW) GK大剣/風/水/拳", gk: "大剣", f1: {r:"風法器", p:"MF"}, f2: {r:"水法器", p:"MF"}, f3: {r:"拳", p:"FW"} }
-  ];
-
-  const PRESETS_3V3 = [
-    { key: "3v3_royal", label: "① 3vs3 王道トス狙撃 (1MF/1FW) GK弓/風/拳", gk: "弓", f1: {r:"風法器", p:"MF"}, f2: {r:"拳", p:"FW"} },
-    { key: "3v3_cannon", label: "② 3vs3 堅守カウンター (1MF/1FW) GK大剣/風/弓", gk: "大剣", f1: {r:"風法器", p:"MF"}, f2: {r:"弓", p:"FW"} },
-    { key: "3v3_hydro_fw", label: "③ 3vs3 FW水圧殺 (1MF/1FW) GK大剣/雷/水", gk: "大剣", f1: {r:"雷", p:"MF"}, f2: {r:"水法器", p:"FW"} },
-    { key: "3v3_hydro_mf", label: "④ 3vs3 MF水・万能 (1MF/1FW) GK弓/水/大剣", gk: "弓", f1: {r:"水法器", p:"MF"}, f2: {r:"大剣", p:"FW"} },
-    { key: "3v3_double_mf", label: "⑤ 3vs3 2MF変則制圧 (2MF) GK大剣/風/水", gk: "大剣", f1: {r:"風法器", p:"MF"}, f2: {r:"水法器", p:"MF"} }
-  ];
-
-  function setMatchFormat(format) {
-    currentMatchFormat = format;
-    document.getElementById('btn-mode-4v4').classList.toggle('active', format === '4v4');
-    document.getElementById('btn-mode-3v3').classList.toggle('active', format === '3v3');
-
-    const f3Box = document.getElementById('box-field3');
-    const modeBadge = document.getElementById('party-mode-badge');
-
-    if (format === '3v3') {
-      f3Box.style.display = 'none';
-      modeBadge.textContent = '3vs3 基準';
-    } else {
-      f3Box.style.display = 'block';
-      modeBadge.textContent = '4vs4 基準';
-    }
-
-    renderPresetButtons();
-    const firstPreset = format === '4v4' ? PRESETS_4V4[0] : PRESETS_3V3[0];
-    applyPresetObj(firstPreset, 0);
-  }
-
-  function renderPresetButtons() {
-    const list = currentMatchFormat === '4v4' ? PRESETS_4V4 : PRESETS_3V3;
-    const container = document.getElementById('preset-container');
-    container.innerHTML = list.map((p, idx) => `
-      <button class="preset-btn ${idx === 0 ? 'active' : ''}" onclick="selectPreset(${idx})">${p.label}</button>
-    `).join('');
-  }
-
-  function selectPreset(idx) {
-    const list = currentMatchFormat === '4v4' ? PRESETS_4V4 : PRESETS_3V3;
-    applyPresetObj(list[idx], idx);
-  }
-
-  function applyPresetObj(p, activeIdx) {
-    const btns = document.querySelectorAll('#preset-container .preset-btn');
-    btns.forEach((b, i) => b.classList.toggle('active', i === activeIdx));
-
-    document.getElementById('slot-gk').value = p.gk;
-    
-    document.getElementById('slot-field1').value = p.f1.r;
-    document.getElementById('pos-field1').value = p.f1.p;
-    
-    document.getElementById('slot-field2').value = p.f2.r;
-    document.getElementById('pos-field2').value = p.f2.p;
-    
-    if (currentMatchFormat === '4v4' && p.f3) {
-      document.getElementById('slot-field3').value = p.f3.r;
-      document.getElementById('pos-field3').value = p.f3.p;
-    }
-    
-    updateBoxColors();
-    updatePartySim();
-  }
-
-  function updateBoxColors() {
-    for (let i = 1; i <= 3; i++) {
-      const box = document.getElementById(`box-field${i}`);
-      if (!box) continue;
-      const pos = document.getElementById(`pos-field${i}`).value;
-      const concept = document.getElementById(`field${i}-concept`);
-      if (pos === 'MF') {
-        box.classList.remove('slot-fw');
-        box.classList.add('slot-mf');
-        concept.style.color = "var(--accent)";
-      } else {
-        box.classList.remove('slot-mf');
-        box.classList.add('slot-fw');
-        concept.style.color = "#f87171";
-      }
-    }
-  }
-
-  function updatePartySim() {
-    const gk = document.getElementById('slot-gk').value;
-    const is4v4 = currentMatchFormat === '4v4';
-    const numFields = is4v4 ? 3 : 2;
-    
-    let fieldPlayers = [];
-    let fieldData = [];
-    let mfs = [];
-    let fws = [];
-    let allRoles = [gk];
-
-    for (let i = 1; i <= numFields; i++) {
-      let role = document.getElementById(`slot-field${i}`).value;
-      let pos = document.getElementById(`pos-field${i}`).value;
-      fieldPlayers.push(role);
-      allRoles.push(role);
-      
-      let stats = pos === 'MF' ? VANGUARD_DATA[role].mfStats : VANGUARD_DATA[role].fwStats;
-      let concept = pos === 'MF' ? VANGUARD_DATA[role].mfConcept : VANGUARD_DATA[role].fwConcept;
-      let desc = pos === 'MF' ? VANGUARD_DATA[role].mfDesc : VANGUARD_DATA[role].fwDesc;
-      
-      fieldData.push({ role, pos, stats });
-      
-      document.getElementById(`field${i}-concept`).textContent = concept;
-      document.getElementById(`desc-field${i}`).textContent = desc;
-      
-      if (pos === 'MF') mfs.push(role);
-      if (pos === 'FW') fws.push(role);
-    }
-
-    document.getElementById('gk-concept').textContent = GK_DATA[gk].concept;
-    document.getElementById('desc-gk').textContent = GK_DATA[gk].shortDesc;
-
-    const gkS = GK_DATA[gk].stats;
-
-    const getAntiAirBonus = (role, weight) => {
-      let base = 1;
-      if (role === "剣士" || role === "弓") base = 3.2;
-      else if (role === "風法器" || role === "雷") base = 2.2;
-      else if (role === "水法器" || role === "大剣") base = 1.6;
-      return base * weight;
-    };
-    
-    let antiAirField = 0;
-    let groundRawField = 0;
-    let atkRawField = 0;
-    let spdRawField = 0;
-    let synRawField = 0;
-    let ctrlRawField = 0;
-    let rotRawField = 0;
-
-    fieldData.forEach(d => {
-      let isMF = d.pos === 'MF';
-      antiAirField += getAntiAirBonus(d.role, isMF ? 1.25 : 0.85);
-      groundRawField += d.stats[3] * (isMF ? 1.1 : 0.45);
-      atkRawField += d.stats[0] * (isMF ? 0.75 : 1.3);
-      spdRawField += d.stats[1] * (isMF ? 1.15 : 1.0);
-      synRawField += d.stats[2] * (isMF ? 1.4 : 0.85);
-      ctrlRawField += d.stats[3] * (isMF ? 1.2 : 1.05);
-      rotRawField += d.stats[4] * (isMF ? 1.0 : 1.15);
-    });
-
-    const maxAntiAir = is4v4 ? 19.5 : 16.5;
-    const maxGround = is4v4 ? 19.0 : 17.0;
-    const maxAtk = is4v4 ? 19.5 : 13.5;
-    const maxSpd = is4v4 ? 18.0 : 13.5;
-    const maxSyn = is4v4 ? 19.5 : 15.5;
-    const maxCtrl = is4v4 ? 20.0 : 15.0;
-    const maxRot = is4v4 ? 19.5 : 14.0;
-
-    const valAntiAir = Math.min(100, Math.round(((gkS[0] * 2.0 + antiAirField) / maxAntiAir) * 100));
-    const valGround = Math.min(100, Math.round(((gkS[1] + gkS[2] + groundRawField) / maxGround) * 100));
-    const valAtk = Math.min(100, Math.round(((atkRawField + gkS[4] * 0.7) / maxAtk) * 100));
-    const valSpd = Math.min(100, Math.round(((spdRawField + gkS[2] * 0.6) / maxSpd) * 100));
-    const valSyn = Math.min(100, Math.round(((synRawField + gkS[3] * 0.9) / maxSyn) * 100));
-    const valCtrl = Math.min(100, Math.round(((ctrlRawField + gkS[3] * 0.85) / maxCtrl) * 100));
-    const valRot = Math.min(100, Math.round(((rotRawField + gkS[2] * 0.75) / maxRot) * 100));
-
-    const metrics = [
-      { name: "🛡️ 対空守備・カバー力", val: valAntiAir },
-      { name: "🧱 地上守備・ゴール前粘り", val: valGround },
-      { name: "💥 突破力・フィニッシュ決定力", val: valAtk },
-      { name: "⚡ 初動・コート機動力", val: valSpd },
-      { name: "🎯 連携・トス＆セットプレイ", val: valSyn },
-      { name: "🕸️ 盤面制圧・相手妨害力", val: valCtrl },
-      { name: "🔄 手数・爆発CT回転率", val: valRot }
-    ];
-
-    const barsContainer = document.getElementById('party-bars');
-    barsContainer.innerHTML = metrics.map(m => {
-      let color = "#38bdf8";
-      if (m.val >= 80) color = "#10b981";
-      else if (m.val < 55) color = "#f59e0b";
-      return `
-        <div class="stat-row">
-          <div class="stat-header"><span>${m.name}</span><span>${m.val} / 100</span></div>
-          <div class="bar-bg"><div class="bar-fill" style="width:${m.val}%; background:${color};"></div></div>
-        </div>
-      `;
-    }).join('');
-
-    const synList = [];
-    const has = (r) => allRoles.includes(r);
-    const count = (r) => allRoles.filter(x => x === r).length;
-
-    if (mfs.length >= 2) {
-      synList.push({
-        type: "special",
-        title: "🌐【ダブルMF編成：圧倒的な盤面支配】",
-        text: "MFが複数いることで中盤の支配力が非常に高くなります。前線の決定力は下がるものの、豊富なトスとパスカットで相手に攻める隙を与えません。"
-      });
-    }
-
-    if (fws.includes("水法器")) {
-      synList.push({
-        type: "special",
-        title: "🌊【FW水法器：最凶のゴール前圧殺＆オフサイド戦術】",
-        text: "水法器がFWに配置されています！相手ゴール前に設置罠を張るだけで回避を強制し、初動の乱戦やオフサイド戦術で相手が何もできないまま得点を量産できます。"
-      });
-    }
-    if (mfs.includes("水法器")) {
-      synList.push({
-        type: "good",
-        title: "💧【MF水法器：万能サポート＆緊急引き寄せカバー】",
-        text: "水法器がMFに配置されています。自陣ピンチを引き寄せ（CT8秒）で救出し、設置で前線へパスを送り、爆発で味方をサポートする司令塔として機能します。"
-      });
-    }
-
-    if (fieldPlayers.includes("雷")) {
-      const isThunderMF = mfs.includes("雷");
-      const isThunderFW = fws.includes("雷");
-      const electroPos = isThunderMF && isThunderFW ? "MFとFW" : (isThunderMF ? "MF" : "FW");
-      synList.push({
-        type: "special",
-        title: `⚡【${electroPos}に雷配置：プレイヤーの「型」で変化する多芸枠】`,
-        text: isThunderMF
-          ? "MF配置の雷は、クナイによるパス制限、裏抜けボールの即回収など「サポート・DF・妨害型」の立ち回りでコートを制圧します。"
-          : "FW配置の雷は、空中クナイワープ＋通常の死角シュートや、ゴール前で多彩な択を迫る「メインアタッカー特化型」として脅威になります。"
-      });
-    }
-
-    if (has("弓") && has("風法器")) {
-      synList.push({
-        type: "combo",
-        title: "🎯【王道連携】風トス ➔ 弓チャージ矢レーザー＆爆発",
-        text: "風の王道コンボで高く浮いた球を、後方から弓のチャージ矢で射抜くガード不能級の連携！「風爆発＋弓爆発」も確定級の威力。"
-      });
-    }
-    if (has("弓") && has("拳")) {
-      synList.push({
-        type: "combo",
-        title: "🎯【高速連携】拳アッパートス ➔ 弓チャージ矢スパイク",
-        text: "拳が「アッパー＋通常」で打ち上げたボールに、あらかじめチャージした弓が合わせて射抜く超高速レーザー連携が成立！"
-      });
-    }
-    if (has("水法器") && has("弓")) {
-      synList.push({
-        type: "combo",
-        title: "💧【必殺セットプレイ】水王道コンボ ＋ 弓爆発",
-        text: "水の「引き寄せ＋設置」や浮かせに対し、弓の高速爆発を重ねることで相手GKが反応できない確定ゴールを狙えます。"
-      });
-    }
-
-    if (gk === "大剣" && (fieldPlayers.includes("剣士") || fieldPlayers.includes("弓"))) {
-      synList.push({
-        type: "good",
-        title: "🛡️【守備補完◎】大剣GKの対空・遠距離カバー成立",
-        text: "地上最強の大剣GKが苦手とする「超高空コンボや遠距離からの揺さぶり」を、剣士のアッパーや弓の対空射撃でしっかり補完できています。"
-      });
-    }
-    if (gk === "弓" && mfs.includes("大剣")) {
-      synList.push({
-        type: "good",
-        title: "🛡️【守備補完◎】弓GKの地上防衛をMF大剣の「関所」が護衛",
-        text: "弓GKが苦手な「地上からの連続押し込み」を、MF大剣が中間ラインの3溜めで遮断する理想的な縦のラインが形成されています。"
-      });
-    }
-
-    if (count("雷") >= 2) {
-      synList.push({
-        type: "warn",
-        title: "⚠️【注意＆ロマン】雷が複数編成されています（クナイ色識別不可）",
-        text: "クナイの色判別が難しく、味方のコンボをワープで止めるリスクがあります。ただし「自陣ワープクリア➔味方雷ワープ追撃」の2段リレーが決まれば一瞬で逆転も！"
-      });
-    }
-    if (gk === "大剣" && !fieldPlayers.includes("弓") && !fieldPlayers.includes("剣士") && !fieldPlayers.includes("風法器")) {
-      synList.push({
-        type: "warn",
-        title: "⚠️【弱点警告】高空の浮き球に対する対空ケアが薄めです",
-        text: "相手が「風＋弓」や「雷の空中ワープ」で頭上を攻めてきた場合、大剣GKの3溜めだけでは届かない場面が出やすいです。"
-      });
-    }
-
-    document.getElementById('party-synergies').innerHTML = synList.map(s => `
-      <div class="synergy-item ${s.type === 'combo' ? 'combo' : (s.type === 'special' ? 'special' : (s.type === 'warn' ? 'warn' : ''))}">
-        <strong>${s.title}</strong>
-        <span>${s.text}</span>
-      </div>
-    `).join('');
-  }
-
-  // --- TAB 1: RADAR CHART & ROLE COMPARISON ---
-  let currentRoleMode = 'vanguard';
-  let selectedRoles = ['拳', '弓', '大剣'];
-
-  function setRoleMode(mode) {
-    currentRoleMode = mode;
-    document.getElementById('mode-vanguard-btn').classList.toggle('active', mode === 'vanguard');
-    document.getElementById('mode-gk-btn').classList.toggle('active', mode === 'gk');
-
-    if (mode === 'gk') {
-      selectedRoles = selectedRoles.filter(r => GK_DATA[r]);
-      if (selectedRoles.length === 0) selectedRoles = ['大剣', '弓'];
-    } else {
-      if (selectedRoles.length === 0) selectedRoles = ['拳', '弓'];
-    }
-    renderRolePills();
-    drawRadar();
-    renderRoleDetails();
-  }
-
-  function toggleRoleSelection(role) {
-    if (selectedRoles.includes(role)) {
-      if (selectedRoles.length > 1) {
-        selectedRoles = selectedRoles.filter(r => r !== role);
-      }
-    } else {
-      selectedRoles.push(role);
-    }
-    renderRolePills();
-    drawRadar();
-    renderRoleDetails();
-  }
-
-  function renderRolePills() {
-    const dataObj = currentRoleMode === 'gk' ? GK_DATA : VANGUARD_DATA;
-    const container = document.getElementById('role-Selector-pills');
-    container.innerHTML = Object.keys(dataObj).map(role => {
-      const active = selectedRoles.includes(role);
-      const bg = active ? ROLE_COLORS[role] : '#0f172a';
-      return `<button class="role-pill ${active ? 'active' : ''}" style="background:${bg}; border-color:${ROLE_COLORS[role]}" onclick="toggleRoleSelection('${role}')">${role}</button>`;
-    }).join('');
-  }
-
-  function drawRadar() {
-    const canvas = document.getElementById('radarCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const w = canvas.width;
-    const h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
-
-    const cx = w / 2;
-    const cy = h / 2 + 6;
-    const radius = 115;
-
-    const labels = currentRoleMode === 'gk'
-      ? ["対空セーブ", "地上セーブ", "回転・粘り", "遠隔支援", "カウンター決定力"]
-      : ["突破・決定力", "機動力・展開", "連携・トス", "制圧・防衛干渉", "手数・爆発回転"];
-
-    const dataObj = currentRoleMode === 'gk' ? GK_DATA : VANGUARD_DATA;
-
-    for (let step = 1; step <= 5; step++) {
-      const r = (radius / 5) * step;
-      ctx.beginPath();
-      for (let i = 0; i < 5; i++) {
-        const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
-        const x = cx + r * Math.cos(angle);
-        const y = cy + r * Math.sin(angle);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = step === 5 ? "#475569" : "#334155";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "bold 12px sans-serif";
-    ctx.textAlign = "center";
-    for (let i = 0; i < 5; i++) {
-      const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
-      const x = cx + radius * Math.cos(angle);
-      const y = cy + radius * Math.sin(angle);
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(x, y);
-      ctx.strokeStyle = "#334155";
-      ctx.stroke();
-
-      const lx = cx + (radius + 28) * Math.cos(angle);
-      const ly = cy + (radius + 20) * Math.sin(angle);
-      ctx.fillText(labels[i], lx, ly + 4);
-    }
-
-    selectedRoles.forEach(role => {
-      const d = dataObj[role];
-      if (!d) return;
-      const stats = d.stats;
-      const color = ROLE_COLORS[role];
-
-      ctx.beginPath();
-      for (let i = 0; i < 5; i++) {
-        const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
-        const r = (radius / 5) * stats[i];
-        const x = cx + r * Math.cos(angle);
-        const y = cy + r * Math.sin(angle);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.fillStyle = color + "44";
-      ctx.fill();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-
-      for (let i = 0; i < 5; i++) {
-        const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
-        const r = (radius / 5) * stats[i];
-        const x = cx + r * Math.cos(angle);
-        const y = cy + r * Math.sin(angle);
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
-      }
-    });
-  }
-
-  function renderRoleDetails() {
-    const dataObj = currentRoleMode === 'gk' ? GK_DATA : VANGUARD_DATA;
-    const labels = currentRoleMode === 'gk'
-      ? ["対空セーブ", "地上セーブ", "回転・粘り", "遠隔支援", "カウンター決定力"]
-      : ["突破・決定力", "機動力・展開", "連携・トス", "制圧・防衛干渉", "手数・爆発回転"];
-
-    const container = document.getElementById('role-detail-panel');
-    container.innerHTML = selectedRoles.map(role => {
-      const d = dataObj[role];
-      if (!d) return '';
-      const statBadges = d.stats.map((v, idx) => `<span class="badge" style="background:#0f172a; border:1px solid #334155; margin-right:4px; margin-bottom:4px;">${labels[idx]}: <strong style="color:${ROLE_COLORS[role]}">${v}</strong></span>`).join('');
-      return `
-        <div class="slot-box" style="margin-bottom:10px; border-left: 4px solid ${ROLE_COLORS[role]};">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <strong style="font-size:1rem; color:${ROLE_COLORS[role]}">${role}（${currentRoleMode === 'gk' ? 'GK' : 'MF / FW'}）</strong>
-            <span class="badge" style="background:${ROLE_COLORS[role]}22; color:${ROLE_COLORS[role]}">${d.concept}</span>
-          </div>
-          <div style="margin-bottom:8px;">${statBadges}</div>
-          <p style="font-size:0.8rem; margin-bottom:4px;"><strong style="color:#10b981;">◎ 強み：</strong>${d.pros}</p>
-          <p style="font-size:0.8rem; color:var(--text-sub);"><strong style="color:#ef4444;">✕ 弱み：</strong>${d.cons}</p>
-        </div>
-      `;
-    }).join('');
-  }
-
-  // --- TAB 4 & 5: MEMBERS & RED-BLUE TEAM MAKER & ALERTS ---
-  let memberTeams = {};
-  let currentChaosAssignments = {};
-
-  function renderMembers() {
-    const grid = document.getElementById('member-grid');
-    grid.innerHTML = MEMBERS.map((m, idx) => {
-      const team = memberTeams[m.name] || null;
-      
-      let gkClass = '';
-      let gkBadge = '';
-      if (m.gk === "GK1") {
-        gkClass = 'gk1-bg';
-        gkBadge = `<span class="combo-badge badge-gk1">GK1</span>`;
-      } else if (m.gk === "GK2") {
-        gkClass = 'gk2-bg';
-        gkBadge = `<span class="combo-badge badge-gk2">GK2</span>`;
-      }
-
-      let teamAssignedClass = '';
-      if (team === 'red') teamAssignedClass = 'team-assigned-red';
-      else if (team === 'blue') teamAssignedClass = 'team-assigned-blue';
-      
-      let posTags = m.pos.map(p => `<span class="combo-badge badge-pos">${p}</span>`).join('');
-      let customDelBtn = m.isCustom
-        ? `<button class="delete-custom-btn" title="この追加メンバーを削除" onclick="deleteCustomMember('${m.name}', event)">削除</button>`
-        : '';
-
-      return `
-        <div class="member-card ${m.checked ? 'checked' : ''} ${gkClass} ${teamAssignedClass}">
-          <div class="member-header">
-            <label class="member-check-label">
-              <input type="checkbox" class="member-checkbox" ${m.checked ? 'checked' : ''} onchange="toggleMemberCheck(${idx}, this.checked)">
-              <span>${m.name} ${gkBadge}</span>
-              <span class="checked-pill">✓ 参加</span>
-            </label>
-            ${customDelBtn}
-          </div>
-          <div class="member-pos-info">${posTags}</div>
-          <div class="member-roles">
-            メイン: <span class="main-r">${m.main}</span><br>
-            サブ: ${m.sub || '―'}
-          </div>
-          <div class="team-btns">
-            <button class="team-btn red ${team === 'red' ? 'active' : ''}" onclick="assignTeam('${m.name}', 'red')">🔴 赤</button>
-            <button class="team-btn blue ${team === 'blue' ? 'active' : ''}" onclick="assignTeam('${m.name}', 'blue')">🔵 青</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-    updateTeamBoard();
-  }
-
-  function toggleMemberCheck(idx, checked) {
-    MEMBERS[idx].checked = checked;
-    renderMembers();
-  }
-
-  function checkAllMembers(status) {
-    MEMBERS.forEach(m => m.checked = status);
-    renderMembers();
-  }
-
-  function assignTeam(name, team) {
-    if (memberTeams[name] === team) {
-      delete memberTeams[name];
-    } else {
-      memberTeams[name] = team;
-    }
-    delete currentChaosAssignments[name];
-    renderMembers();
-  }
-
-  function resetTeams() {
-    memberTeams = {};
-    currentChaosAssignments = {};
-    memberLiveState = {};
-    renderMembers();
-    updateAlerts([], []);
-  }
-
-  function randomTeamsFromChecked(mode) {
-    memberTeams = {};
-    currentChaosAssignments = {};
-    memberLiveState = {};
-    
-    const checkedMembers = MEMBERS.filter(m => m.checked);
-    if (checkedMembers.length === 0) {
-      showToast("⚠️ チェックされたメンバーがいません。参加者にチェックを入れてください。", "warn");
-      return;
-    }
-
-    const shuffled = [...checkedMembers].sort(() => Math.random() - 0.5);
-    const targetHalf = Math.ceil(shuffled.length / 2);
-    let redCount = 0;
-    let blueCount = 0;
-
-    if (mode === 'balanced') {
-      const gk1s = shuffled.filter(m => m.gk === "GK1");
-      const gk2s = shuffled.filter(m => m.gk === "GK2");
-      const others = shuffled.filter(m => m.gk !== "GK1" && m.gk !== "GK2");
-
-      let redHasGK = false;
-      let blueHasGK = false;
-
-      // Assign GK1
-      gk1s.forEach(m => {
-        if (!redHasGK) {
-          memberTeams[m.name] = 'red';
-          redCount++;
-          redHasGK = true;
-        } else if (!blueHasGK) {
-          memberTeams[m.name] = 'blue';
-          blueCount++;
-          blueHasGK = true;
-        } else {
-          if (redCount <= blueCount) {
-            memberTeams[m.name] = 'red';
-            redCount++;
-          } else {
-            memberTeams[m.name] = 'blue';
-            blueCount++;
-          }
-        }
-      });
-
-      // Assign GK2 if needed
-      gk2s.forEach(m => {
-        if (!redHasGK) {
-          memberTeams[m.name] = 'red';
-          redCount++;
-          redHasGK = true;
-        } else if (!blueHasGK) {
-          memberTeams[m.name] = 'blue';
-          blueCount++;
-          blueHasGK = true;
-        } else {
-          if (redCount < targetHalf && blueCount < targetHalf) {
-            if (Math.random() < 0.5) {
-              memberTeams[m.name] = 'red';
-              redCount++;
-            } else {
-              memberTeams[m.name] = 'blue';
-              blueCount++;
-            }
-          } else if (redCount < targetHalf) {
-            memberTeams[m.name] = 'red';
-            redCount++;
-          } else {
-            memberTeams[m.name] = 'blue';
-            blueCount++;
-          }
-        }
-      });
-
-      // Distribute others prioritizing MF/FW balance
-      others.forEach(m => {
-        let redMFCount = MEMBERS.filter(x => memberTeams[x.name] === 'red' && x.pos.includes("MF")).length;
-        let blueMFCount = MEMBERS.filter(x => memberTeams[x.name] === 'blue' && x.pos.includes("MF")).length;
-        
-        let targetTeam = '';
-        
-        if (redCount >= targetHalf) {
-          targetTeam = 'blue';
-        } else if (blueCount >= targetHalf) {
-          targetTeam = 'red';
-        } else {
-          if (m.pos.includes("MF") && redMFCount !== blueMFCount) {
-            targetTeam = redMFCount < blueMFCount ? 'red' : 'blue';
-          } else {
-            targetTeam = Math.random() < 0.5 ? 'red' : 'blue';
-          }
-        }
-        
-        memberTeams[m.name] = targetTeam;
-        if (targetTeam === 'red') redCount++;
-        else blueCount++;
-      });
-
-    } else if (mode === 'chaos') {
-      let redGkAssigned = false;
-      let blueGkAssigned = false;
-      
-      shuffled.forEach((m, idx) => {
-        const team = idx < targetHalf ? 'red' : 'blue';
-        memberTeams[m.name] = team;
-        
-        let pos = "";
-        let role = "";
-        if (team === 'red' && !redGkAssigned) {
-          pos = "GK";
-          role = ["弓", "大剣", "雷", "風法器"][Math.floor(Math.random() * 4)];
-          redGkAssigned = true;
-        } else if (team === 'blue' && !blueGkAssigned) {
-          pos = "GK";
-          role = ["弓", "大剣", "雷", "風法器"][Math.floor(Math.random() * 4)];
-          blueGkAssigned = true;
-        } else {
-          pos = Math.random() < 0.5 ? "MF" : "FW";
-          role = ALL_ROLES[Math.floor(Math.random() * ALL_ROLES.length)];
-        }
-        currentChaosAssignments[m.name] = `${pos}: ${role}`;
-      });
-        
-    } else {
-      shuffled.forEach((m, idx) => {
-        if (idx < targetHalf) {
-          memberTeams[m.name] = 'red';
-        } else {
-          memberTeams[m.name] = 'blue';
-        }
-      });
-    }
-
-    renderMembers();
-  }
-
-  function updateTeamBoard() {
-    const checkedCount = MEMBERS.filter(m => m.checked).length;
-    document.getElementById('checked-count').textContent = checkedCount;
-
-    const reds = MEMBERS.filter(m => memberTeams[m.name] === 'red');
-    const blues = MEMBERS.filter(m => memberTeams[m.name] === 'blue');
-
-    document.getElementById('red-count-tab4').textContent = reds.length;
-    document.getElementById('blue-count-tab4').textContent = blues.length;
-    document.getElementById('red-count').textContent = reds.length;
-    document.getElementById('blue-count').textContent = blues.length;
-
-    const renderList = (teamMembers) => {
-      if (teamMembers.length === 0) return '<span style="color:var(--text-sub)">メンバーを選択してください</span>';
-      return teamMembers.map(m => {
-        let gkBadge = '';
-        if (m.gk === 'GK1') gkBadge = `<span class="combo-badge badge-gk1">GK1</span>`;
-        if (m.gk === 'GK2') gkBadge = `<span class="combo-badge badge-gk2">GK2</span>`;
-        
-        let posStr = m.pos.join('/');
-        
-        if (currentChaosAssignments[m.name]) {
-          const assignText = currentChaosAssignments[m.name];
-          const c_role = assignText.split(": ")[1];
-          let short_r = c_role.replace('法器', '');
-          return `<div class="draft-member-item">
-                    <div><strong>${m.name}</strong> <span style="font-size:0.7rem; color:var(--text-sub);">(${m.main})</span></div>
-                    <span class="role-badge-assigned" style="color:${ROLE_COLORS[short_r] || ROLE_COLORS[c_role]}; border-color:${ROLE_COLORS[short_r] || ROLE_COLORS[c_role]}">${assignText}</span>
-                  </div>`;
-        } else {
-          return `<div class="draft-member-item">
-                    <div><strong>${m.name}</strong> ${gkBadge} <span class="combo-badge badge-pos">${posStr}</span></div>
-                    <div><span style="color:var(--accent); font-weight:700; font-size:0.85rem;">${m.main}</span> <span style="font-size:0.7rem;color:var(--text-sub)">(${m.sub})</span></div>
-                  </div>`;
-        }
-      }).join('');
-    };
-
-    const redListHTML = renderList(reds);
-    const blueListHTML = renderList(blues);
-
-    document.getElementById('red-team-list-tab4').innerHTML = redListHTML;
-    document.getElementById('blue-team-list-tab4').innerHTML = blueListHTML;
-    document.getElementById('red-team-list').innerHTML = redListHTML;
-    document.getElementById('blue-team-list').innerHTML = blueListHTML;
-    
-    updateAlerts(reds, blues);
-  }
-
-  function updateAlerts(reds, blues) {
-    const redAlertsDiv = document.getElementById('red-alerts');
-    const blueAlertsDiv = document.getElementById('blue-alerts');
-
-    if (reds.length === 0 && blues.length === 0) {
-      const emptyMsg = `<div style="font-size:0.8rem; color:var(--text-sub);">チーム分けが完了していません。</div>`;
-      redAlertsDiv.innerHTML = emptyMsg;
-      blueAlertsDiv.innerHTML = emptyMsg;
-      return;
-    }
-
-    const getExpectedRoles = (m) => {
-      if (currentChaosAssignments[m.name]) {
-        return [currentChaosAssignments[m.name].split(": ")[1]];
-      }
-      
-      let expected = [];
-      if (m.name === "あーるぐれい") expected.push("水", "弓(GK)");
-      else if (m.name === "鈍茶(どんちゃ)" || m.name === "shell™(饂飩)") expected.push("弓", "弓(GK)");
-      else if (m.name === "いちごみるく") expected.push("雷", "弓(GK)", "水(MF)");
-      else if (m.name === "ころ") expected.push("大剣", "雷", "風", "水(MF)");
-      else if (m.name === "丘丘人殺手") expected.push("剣", "弓", "水(MF)");
-      else if (m.name === "本物D旅人" || m.name === "パイモンの親") expected.push("拳");
-      else if (HYDRO_FW_MASTERS.includes(m.name)) {
-        expected.push(...m.main.split(" "));
-        expected.push("水");
-      } else {
-        expected.push(...m.main.split(" "));
-      }
-      return [...new Set(expected)];
-    };
-
-    const redRoles = reds.flatMap(m => getExpectedRoles(m));
-    const blueRoles = blues.flatMap(m => getExpectedRoles(m));
-
-    const generateAlerts = (myTeam, myRoles, enemyTeam, enemyRoles) => {
-      const alerts = [];
-      const hasEnemy = (r) => enemyRoles.some(er => er.includes(r));
-      const countEnemy = (r) => enemyRoles.filter(er => er.includes(r)).length;
-      const hasMe = (r) => myRoles.some(mr => mr.includes(r));
-      
-      const enemiesWithHydroFW = enemyTeam.filter(m => HYDRO_FW_MASTERS.includes(m.name));
-      
-      if (enemiesWithHydroFW.length > 0) {
-        const names = enemiesWithHydroFW.map(m => m.name).join('、');
-        alerts.push(`<div class="synergy-item warn" style="margin-bottom:8px; padding:8px;"><strong>⚠️ 対【水FW(オフサイド)】警戒アラート</strong>相手の <strong>${names}</strong> は強烈な水FW（前線圧殺・オフサイド）を仕掛けてくる可能性が極めて高いです。こちらのGKは大剣をピックして3溜めで完封するか、弓で引き寄せ範囲外から迎撃する準備を！</div>`);
-      } else if (hasEnemy("水") || hasEnemy("水(MF)")) {
-        alerts.push(`<div class="synergy-item warn" style="margin-bottom:8px; padding:8px;"><strong>⚠️ 対「水（MFサポート・引き寄せ）」警戒アラート</strong>相手の引き寄せカバーや設置罠に注意。GKは不用意にスキルを吐かないよう警戒してください。</div>`);
-      }
-      
-      const enemiesWithFist = enemyTeam.filter(m => FIST_MASTERS.includes(m.name));
-      if (enemiesWithFist.length > 0) {
-        const names = enemiesWithFist.map(m => m.name).join('、');
-        alerts.push(`<div class="synergy-item special" style="margin-bottom:8px; padding:8px;"><strong>🥊 対【インファイト】警戒アラート</strong>相手の <strong>${names}</strong> は強力なインファイター（拳）です。爆速回転とアッパーの押し返し防衛に警戒し、不用意に地上戦を挑まず空中のトスや遠距離から崩しましょう。</div>`);
-      }
-
-      const enemiesWithBowGK = enemyTeam.filter(m => BOW_GK_MASTERS.includes(m.name));
-      if (enemiesWithBowGK.length > 0) {
-        alerts.push(`<div class="synergy-item combo" style="margin-bottom:8px; padding:8px;"><strong>🎯 対【弓GK】警戒アラート</strong>相手は弓GKを繰り出してくる可能性が高いです。空中へのトスは常にチャージ矢で撃ち落とされる危険があるため、地上戦メインで組み立てるか、雷のワープシュートで死角を突きましよう。</div>`);
-      }
-
-      if (countEnemy("雷") >= 2) {
-        alerts.push(`<div class="synergy-item special" style="margin-bottom:8px; padding:8px;"><strong>🚨 対「ダブル雷」警戒アラート</strong>相手のクナイ色判別が難しくなります。空中のクナイには絶対に近づかず、ワープ奇襲を常に警戒してください。</div>`);
-      }
-      if (hasEnemy("風") && hasEnemy("弓") && enemiesWithBowGK.length === 0) {
-        alerts.push(`<div class="synergy-item combo" style="margin-bottom:8px; padding:8px;"><strong>⚠️ 対「風＋弓」連携アラート</strong>相手の超高空レーザー（風トス➔弓チャージ矢）に警戒！大剣GKは届かないため、前衛が風にプレスをかけてトスを阻止してください。</div>`);
-      }
-      if (hasEnemy("大剣") && hasMe("水")) {
-        alerts.push(`<div class="synergy-item special" style="margin-bottom:8px; padding:8px;"><strong>⚠️ 対「大剣GK」× 水法器の相性注意</strong>相手が大剣GKを出してきた場合、こちらの水単体コンボ（浮かせなし）は3溜め斬り（CT5秒）で正面から完封されやすいです。風・拳の浮かせ連携を絡めて頭上を狙うか、MFサポートや別役職で崩しましょう！</div>`);
-      }
-      if (hasEnemy("水") && hasMe("弓")) {
-        alerts.push(`<div class="synergy-item good" style="margin-bottom:8px; padding:8px; border-left:4px solid #10b981; background:rgba(16,185,129,0.12);"><strong>💡 水カウンターアドバイス</strong>こちらの「弓」で、相手の引き寄せの浮きを逆利用した王道コンボ（投擲＋爆発）カウンターが狙えます！引き寄せ範囲外から高威力球を打ち込みましょう。</div>`);
-      }
-      
-      if (alerts.length === 0) {
-        alerts.push(`<div style="font-size:0.8rem; color:var(--text-sub);">現在特筆すべき警戒アラートはありません。基本的な立ち回りを意識して戦いましょう。</div>`);
-      }
-      return alerts.join('');
-    };
-
-    redAlertsDiv.innerHTML = generateAlerts(reds, redRoles, blues, blueRoles);
-    blueAlertsDiv.innerHTML = generateAlerts(blues, blueRoles, reds, redRoles);
-  }
-
-  // Initialize on load
-  window.addEventListener('DOMContentLoaded', () => {
-    initDiscordAndIframeSupport();
-    loadCustomMembersFromStorage();
-    renderPresetButtons();
-    updatePartySim();
-    renderRolePills();
-    drawRadar();
-    renderRoleDetails();
-    renderMembers();
-  });
-</script>
-
-</body>
-</html>
+  ... （残り172 KB）
